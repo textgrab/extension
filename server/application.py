@@ -5,6 +5,9 @@ from flask_cors import CORS, cross_origin
 from config import Config
 from ocr import gcp_ocr
 
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+
 # from ner import ner_spacy
 # from summarization import summarize_bart
 
@@ -16,6 +19,7 @@ import shortuuid
 app = Flask(__name__)
 cors = CORS(app)
 
+limiter = Limiter(app, key_func=get_remote_address)
 
 # conn = psycopg2.connect(user="htn21",
 #                         password=COCKROACH_DB_PASS,
@@ -43,6 +47,7 @@ def new_session():
 
 @app.route("/process", methods=["POST"])
 @cross_origin()
+@limiter.limit("20/minute")  # maximum of 10 requests per minute
 def process():
     """
     Payload:

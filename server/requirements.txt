@@ -4,6 +4,7 @@ charset-normalizer==2.0.6
 click==8.0.1
 Flask==2.0.1
 Flask-Cors==3.0.10
+Flask-Limiter==1.4
 google-api-core==2.0.1
 google-auth==2.1.0
 google-cloud-vision==2.4.2
@@ -12,6 +13,7 @@ grpcio==1.40.0
 idna==3.2
 itsdangerous==2.0.1
 Jinja2==3.0.1
+limits==1.5.1
 MarkupSafe==2.0.1
 packaging==21.0
 proto-plus==1.19.0
