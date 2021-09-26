@@ -14,9 +14,9 @@ document.addEventListener(
       // Load data once
       chrome.storage.local.get(["notes_html"], function(result) {
         var notes = document.getElementById('notes-list')
-        chrome.extension.getBackgroundPage().console.log("restoring");
+        // chrome.extension.getBackgroundPage().console.log("restoring");
 
-        chrome.extension.getBackgroundPage().console.log(result);
+        // chrome.extension.getBackgroundPage().console.log(result);
 
         if (result['notes_html'] != null) {
 
@@ -43,8 +43,8 @@ document.addEventListener(
         
         var datestring = new Date().toLocaleString().replace(",","").replace(/:.. /," ");
 
-        chrome.extension.getBackgroundPage().console.log("Getting message");
-        chrome.extension.getBackgroundPage().console.log(msg);
+        // chrome.extension.getBackgroundPage().console.log("Getting message");
+        // chrome.extension.getBackgroundPage().console.log(msg);
 
         var result = msg;
         // Update the extension UI
@@ -129,16 +129,17 @@ document.addEventListener(
       });
 
 
-      function hello() {
+      function run() {
         // chrome.tabs.executeScript({
         //   file: '../inject.js'
         // }); 
+        // chrome.extension.getBackgroundPage().console.log('Send run query');
         chrome.runtime.sendMessage({'myPopupIsOpen': true});
       }
 
 
       
-      document.getElementById('capture-btn').addEventListener('click', hello);
+      document.getElementById('capture-btn').addEventListener('click', run);
 
         // Get session id
      
@@ -198,7 +199,7 @@ document.addEventListener(
       button.addEventListener(
         "click",
         () => {
-            chrome.extension.getBackgroundPage().console.log("hello");
+            // chrome.extension.getBackgroundPage().console.log("hello");
             // Launch the screen capture
             button.innerHTML = "Capturing..."
 

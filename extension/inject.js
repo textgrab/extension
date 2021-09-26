@@ -139,7 +139,56 @@ function isDifferent(seen, incoming) {
   return false;
 }
 
+
+
 var seen = {};
+
+async function runQuery(canvas) {
+  let video = document.querySelector("video");
+  if (video == null) return;
+
+  // resize_canvas(video);
+  let stream = video.captureStream();
+  let imageCapture = new ImageCapture(stream.getVideoTracks()[0]);
+  let frame = await imageCapture.grabFrame();
+
+  var offScreenCanvas = document.getElementById("ghost");
+  var context = offScreenCanvas.getContext("bitmaprenderer");
+  const [frameWidth, frameHeight] = [frame.width, frame.height];
+  context.transferFromImageBitmap(frame);
+  var dataURL = offScreenCanvas.toDataURL();
+  var selectedRects = [];
+  let response = await getAPI(dataURL);
+  chrome.runtime.sendMessage(response, function (response) {
+    console.log("sending message");
+  });
+  response.lines.forEach((line) => {
+    const boundaryBox = line.bounding_box;
+    const [width, height] = [video.offsetWidth, video.offsetHeight];
+    const wScale = width / frameWidth;
+    const hScale = height / frameHeight;
+    selectedRects.push(
+      new Rect(
+        Math.round(boundaryBox.x * wScale),
+        Math.round(boundaryBox.y * hScale),
+        boundaryBox.width * wScale,
+        boundaryBox.height * hScale,
+        line.text
+      )
+    );
+  });
+
+  // console.log(seen);
+  // if (isDifferent(seen, selectedRects)) {
+  //   seen = {};
+  //   selectedRects.forEach((val) => {
+  //     seen[val.repr()] = true;
+  //   });
+  //   console.log("IS DIFFERENT");
+  // }
+  canvas.showRects(selectedRects);
+}
+
 function main() {
   var ghost = document.createElement("canvas");
   ghost.id = "ghost";
@@ -151,50 +200,11 @@ function main() {
     console.log(r);
   });
 
-  setInterval(async function () {
-    let video = document.querySelector("video");
-    if (video == null) return;
+  alert("Running query")
 
-    // resize_canvas(video);
-    let stream = video.captureStream();
-    let imageCapture = new ImageCapture(stream.getVideoTracks()[0]);
-    let frame = await imageCapture.grabFrame();
+  runQuery(canvas);
+  return;
 
-    var offScreenCanvas = document.getElementById("ghost");
-    var context = offScreenCanvas.getContext("bitmaprenderer");
-    const [frameWidth, frameHeight] = [frame.width, frame.height];
-    context.transferFromImageBitmap(frame);
-    var dataURL = offScreenCanvas.toDataURL();
-    var selectedRects = [];
-    let response = await getAPI(dataURL);
-    chrome.runtime.sendMessage(response, function (response) {
-      console.log("sending message");
-    });
-    response.lines.forEach((line) => {
-      const boundaryBox = line.bounding_box;
-      const [width, height] = [video.offsetWidth, video.offsetHeight];
-      const wScale = width / frameWidth;
-      const hScale = height / frameHeight;
-      selectedRects.push(
-        new Rect(
-          Math.round(boundaryBox.x * wScale),
-          Math.round(boundaryBox.y * hScale),
-          boundaryBox.width * wScale,
-          boundaryBox.height * hScale,
-          line.text
-        )
-      );
-    });
 
-    // console.log(seen);
-    // if (isDifferent(seen, selectedRects)) {
-    //   seen = {};
-    //   selectedRects.forEach((val) => {
-    //     seen[val.repr()] = true;
-    //   });
-    //   console.log("IS DIFFERENT");
-    // }
-    canvas.showRects(selectedRects);
-  }, 3000);
 }
 main();

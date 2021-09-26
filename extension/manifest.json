@@ -1,27 +1,28 @@
 {
-  "name": "studybuddy",
+  "name": "TextGrab",
   "version": "0.0.1",
-  "manifest_version": 2,
-  "description": "study buddy ...",
+  "manifest_version": 3,
+  "description": "TextGrab ...",
   "icons": {
     "16": "icons/icon16.png",
     "48": "icons/icon48.png",
     "128": "icons/icon128.png"
   },
   "background": {
-    "scripts": [
+    "service_worker": 
       "background.js"
-    ],
-    "persistent": true
   },
-  "browser_action": {
-    "default_title": "StudyBuddy",
+  "action": {
+    "default_title": "TextGrab",
     "default_icon": "icons/icondefault.png",
     "default_popup": "src/browser_action/browser_action.html"
   },
-  "permissions": [
+  "host_permissions": [
     "https://*/*",
-    "http://*/*",
+    "http://*/*"
+  ],
+  "permissions": [
+    "scripting",
     "activeTab",
     "tabs",
     "storage"
