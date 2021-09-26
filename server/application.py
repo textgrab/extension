@@ -1,12 +1,12 @@
 # import psycopg2
-import time
 from flask import Flask, request, jsonify, Response, make_response
 from flask_cors import CORS, cross_origin
 
 from config import Config
 from ocr import gcp_ocr
-from ner import ner_spacy
-from summarization import summarize_bart
+
+# from ner import ner_spacy
+# from summarization import summarize_bart
 
 import shortuuid
 
@@ -61,7 +61,7 @@ def process():
     # entities = ner_spacy(full_text)
 
     # Summarize the text
-    summary = summarize_bart(full_text)
+    # summary = summarize_bart(full_text)
     print(lines)
     response = make_response(
         jsonify(
@@ -69,7 +69,7 @@ def process():
                 "full_text": full_text,
                 "lines": lines,
                 "entities": [],
-                "summary": summary,
+                "summary": "",
             }
         )
     )
