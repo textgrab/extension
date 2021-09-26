@@ -13,8 +13,8 @@ import shortuuid
 # COCKROACH_DB_PASS = os.environ.get('COCKROACH_DB_PASS')
 
 
-application = Flask(__name__)
-cors = CORS(application)
+app = Flask(__name__)
+cors = CORS(app)
 
 
 # conn = psycopg2.connect(user="htn21",
@@ -24,24 +24,24 @@ cors = CORS(application)
 #                         database="weepy-hyena-3533.defaultdb")
 
 
-@application.route("/", methods=["GET"])
+@app.route("/", methods=["GET"])
 def root():
     return {"message": "Welcome to TextGrab API!"}
 
 
-@application.route("/health", methods=["get"])
+@app.route("/health", methods=["get"])
 def test():
     return {"message": "Status OK"}
 
 
-@application.route("/new_session", methods=["GET"])
+@app.route("/new_session", methods=["GET"])
 @cross_origin()
 def new_session():
 
     return {"uuid": shortuuid.uuid()}
 
 
-@application.route("/process", methods=["POST"])
+@app.route("/process", methods=["POST"])
 @cross_origin()
 def process():
     """
@@ -93,4 +93,4 @@ def process():
 
 
 if __name__ == "__main__":
-    application.run(port=Config.PORT, debug=True)
+    app.run(port=Config.PORT, debug=True)
