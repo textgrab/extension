@@ -29,17 +29,9 @@ def root():
     return {"message": "Welcome to TextGrab API!!!"}
 
 
-@app.route("/test", methods=["get"])
+@app.route("/health", methods=["get"])
 def test():
-    response = Response("test")
-
-    @response.call_on_close
-    def on_close():
-        for i in range(10):
-            time.sleep(1)
-            print(i)
-
-    return response
+    return {"message": "Status OK"}
 
 
 @app.route("/new_session", methods=["GET"])
