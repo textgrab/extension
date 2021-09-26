@@ -1,12 +1,7 @@
 import spacy
 
 spacy.prefer_gpu()
-nlp = spacy.load("en_core_web_sm")
-
-
-def ner_gcp(text):
-
-    return None
+# nlp = spacy.load("en_core_web_sm")
 
 
 def ner_spacy(text):
@@ -21,7 +16,6 @@ def ner_spacy(text):
     for entity in doc.ents:
         print(entity.text, entity.label_)
     entities = [{"entity": x.text, "label": x.label_} for x in doc.ents]
-    entities = list(
-        {item['entity']: item for item in entities}.values())  # uniqueify
+    entities = list({item["entity"]: item for item in entities}.values())  # uniqueify
 
     return entities
