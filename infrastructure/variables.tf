@@ -19,7 +19,7 @@ variable "eb_solution_stack_name" {
 }
 
 variable "eb_instance_port" {
-    default = "5000"
+    default = "8000"
 }
 
 variable "eb_instance_type" {
