@@ -1,4 +1,3 @@
-alert("Studybuddy is taking notes now!");
 class Rect {
   constructor(x, y, width, height, value = null) {
     this.x = x;
@@ -190,6 +189,7 @@ async function runQuery(canvas) {
 }
 
 function main() {
+  alert("Studybuddy is taking notes now!");
   var ghost = document.createElement("canvas");
   ghost.id = "ghost";
   ghost.style.position = "absolute";
@@ -200,11 +200,16 @@ function main() {
     console.log(r);
   });
 
-  alert("Running query")
 
   runQuery(canvas);
-  return;
 
 
 }
+
 main();
+alert("Done main!");
+
+// chrome.runtime.onMessage.addListener(function(message, sender, sendResponse){
+//   alert("Received message to run main!")
+//   main();
+// })
