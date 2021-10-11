@@ -21,3 +21,8 @@ provider "aws" {
         }
     }
 }
+
+# it will ask for region without this, we have to duplicate this
+provider "aws" {
+    region = var.aws_region
+}

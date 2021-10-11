@@ -15,7 +15,7 @@ variable "eb_app_description" {
 }
 
 variable "eb_solution_stack_name" {
-    default = "64bit Amazon Linux 2 v3.3.5 running Python 3.8"
+    default = "64bit Amazon Linux 2 v3.3.6 running Python 3.8"
 }
 
 variable "eb_instance_port" {
@@ -34,5 +34,9 @@ variable "eb_asg_max_size" {
     default = 2
 }
 variable "google_application_creds" {
+    type = string
+}
+
+variable "certificate_arn" {
     type = string
 }
