@@ -221,7 +221,7 @@ document.addEventListener(
 
 
         // Test communicating with backend
-        // fetch('http://localhost:8888/process', {
+        // fetch('http://localhost:8000/process', {
         //     method: 'POST',
         //     body: ""
         // })

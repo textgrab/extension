@@ -116,7 +116,7 @@ class Canvas {
 
 async function getAPI(data) {
   data = data.substr(22);
-  let res = await fetch("http://localhost:8888/process", {
+  let res = await fetch("http://localhost:8000/process", {
     method: "POST",
     headers: {
       Accept: "application/json",
