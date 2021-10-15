@@ -1,4 +1,5 @@
 alert("Studybuddy is taking notes now!");
+{
 class Rect {
   constructor(x, y, width, height, value = null) {
     this.x = x;
@@ -115,7 +116,7 @@ class Canvas {
 
 async function getAPI(data) {
   data = data.substr(22);
-  let res = await fetch("http://localhost:8000/process", {
+  let res = await fetch("http://localhost:8888/process", {
     method: "POST",
     headers: {
       Accept: "application/json",
@@ -151,7 +152,7 @@ function main() {
     console.log(r);
   });
 
-  setInterval(async function () {
+  (async function () {
     let video = document.querySelector("video");
     if (video == null) return;
 
@@ -195,6 +196,7 @@ function main() {
     //   console.log("IS DIFFERENT");
     // }
     canvas.showRects(selectedRects);
-  }, 3000);
+  })();
+}
 }
 main();
