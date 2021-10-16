@@ -1,46 +1,32 @@
-
-
-// var b = document.getElementById("demo");
-// b.addEventListener("click", function(){console.log("Hello");})
-
-
-
-
-// Add a button listener 
+// Add a button listener
 document.addEventListener(
   "DOMContentLoaded",
   async () => {
-
     // Load data once
     chrome.storage.local.get(["notes_html"], function (result) {
-      var notes = document.getElementById('notes-list')
+      var notes = document.getElementById("notes-list");
       chrome.extension.getBackgroundPage().console.log("restoring");
 
       chrome.extension.getBackgroundPage().console.log(result);
 
-      if (result['notes_html'] != null) {
-
-        notes.innerHTML = result['notes_html'];
-
+      if (result["notes_html"] != null) {
+        notes.innerHTML = result["notes_html"];
       }
     });
     chrome.storage.local.get(["entities_html"], function (result) {
-      var entities = document.getElementById('entities-list')
-      if (result['entities_html'] != null) {
-        entities.innerHTML = result['entities_html'];
-
+      var entities = document.getElementById("entities-list");
+      if (result["entities_html"] != null) {
+        entities.innerHTML = result["entities_html"];
       }
     });
     chrome.storage.local.get(["summary_html"], function (result) {
-      var summary = document.getElementById('summary')
-      if (result['summary_html'] != null) {
+      var summary = document.getElementById("summary");
+      if (result["summary_html"] != null) {
         summary.innerHTML = result["summary_html"];
-
       }
     });
 
     chrome.runtime.onMessage.addListener((msg, sender) => {
-
       var datestring = new Date().toLocaleString().replace(",", "").replace(/:.. /, " ");
 
       chrome.extension.getBackgroundPage().console.log("Getting message");
@@ -48,48 +34,46 @@ document.addEventListener(
 
       var result = msg;
       // Update the extension UI
-      var notes = document.getElementById('notes-list')
-      var newNote = ""
-      newNote += `<p><strong>${datestring}</strong></p>`
-      for (let line of result['lines']) {
-        newNote += `<li>${line['text']}</li>`
+      var notes = document.getElementById("notes-list");
+      var newNote = "";
+      newNote += `<p><strong>${datestring}</strong></p>`;
+      for (let line of result["lines"]) {
+        newNote += `<li>${line["text"]}</li>`;
       }
-      newNote += "<br>"
+      newNote += "<br>";
 
-      notes.innerHTML = newNote + notes.innerHTML
+      notes.innerHTML = newNote + notes.innerHTML;
 
       // List out detected entities and fetch corresponding wiki page
-      var entities = document.getElementById('entities-list')
-      var newEntities = ""
-      newEntities += `<p><strong>${datestring}</strong></p>`
+      var entities = document.getElementById("entities-list");
+      var newEntities = "";
+      newEntities += `<p><strong>${datestring}</strong></p>`;
 
-      for (let line of result['entities']) {
+      for (let line of result["entities"]) {
+        var wiki_link = `https://en.wikipedia.org/wiki/${line["entity"]}`;
 
-        var wiki_link = `https://en.wikipedia.org/wiki/${line['entity']}`
-
-        // var iframe = document.createElement('iframe'); 
+        // var iframe = document.createElement('iframe');
         // iframe.style.background = "white";
         // iframe.style.height = "100%";
         // iframe.style.width = "500px";
         // iframe.style.position = "relative";
         // iframe.style.top = "0px";
         // iframe.style.right = "0px";
-        // iframe.frameBorder = "none"; 
+        // iframe.frameBorder = "none";
         // iframe.src = wiki_link
         // iframe.className=""
-
 
         // entities.innerHTML += `<a class="link" href="${wiki_link}" target="_blank">${line['entity']}</a> (${line['label']})`
         newEntities += `
             <li>
-            <a class="link" href="${wiki_link}" target="_blank">${line['entity']}</a> (${line['label']})
+            <a class="link" href="${wiki_link}" target="_blank">${line["entity"]}</a> (${line["label"]})
             </li>
             <br>
-            `
+            `;
         // entities.innerHTML += '<br>'
         // entities.innerHTML += `
         //     <div class="link" id="${'box_'+wiki_link}">
-        //     </div> 
+        //     </div>
         // `
         // entities.innerHTML += `<br>`
 
@@ -97,37 +81,32 @@ document.addEventListener(
 
         // boxDiv.appendChild(iframe);
       }
-      newEntities += "<br><br>"
+      newEntities += "<br><br>";
 
-      entities.innerHTML = newEntities + entities.innerHTML
+      entities.innerHTML = newEntities + entities.innerHTML;
 
+      var summary = document.getElementById("summary");
+      var newSummary = "";
+      newSummary += `<p><strong>${datestring}</strong></p>`;
 
-      var summary = document.getElementById('summary')
-      var newSummary = ""
-      newSummary += `<p><strong>${datestring}</strong></p>`
-
-      newSummary += result['summary']
-      newSummary += `<br>`
+      newSummary += result["summary"];
+      newSummary += `<br>`;
       summary.innerHTML = newSummary + summary.innerHTML;
 
-
       // Reset button text back to normal
-      button.innerHTML = "wake up studybuddy"
-
+      button.innerHTML = "wake up studybuddy";
 
       // // Store the new data
-      chrome.storage.local.set({ "notes_html": notes.innerHTML }, function () {
-        console.log('update notes');
+      chrome.storage.local.set({ notes_html: notes.innerHTML }, function () {
+        console.log("update notes");
       });
-      chrome.storage.local.set({ "entities_html": entities.innerHTML }, function () {
-        console.log('update entities');
+      chrome.storage.local.set({ entities_html: entities.innerHTML }, function () {
+        console.log("update entities");
       });
-      chrome.storage.local.set({ "summary_html": summary.innerHTML }, function () {
-        console.log('update summary');
+      chrome.storage.local.set({ summary_html: summary.innerHTML }, function () {
+        console.log("update summary");
       });
-
     });
-
 
     function runInject() {
       chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
@@ -137,8 +116,7 @@ document.addEventListener(
       });
     }
 
-
-    document.getElementById('capture-btn').addEventListener('click', runInject);
+    document.getElementById("capture-btn").addEventListener("click", runInject);
 
     // Get session id
 
@@ -146,53 +124,42 @@ document.addEventListener(
     var b = document.getElementById("entities-div");
     var c = document.getElementById("summary-div");
 
-
     const notesButton = document.getElementById("notesbtn");
-    notesButton.addEventListener(
-      "click",
-      () => {
-        var x = document.getElementById("notes-div");
-        if (x.style.display === "none") {
-          a.style.display = "block";
-          b.style.display = c.style.display = "none";
-        } else {
-          a.style.display = "block";
-          b.style.display = c.style.display = "none";
-        }
+    notesButton.addEventListener("click", () => {
+      var x = document.getElementById("notes-div");
+      if (x.style.display === "none") {
+        a.style.display = "block";
+        b.style.display = c.style.display = "none";
+      } else {
+        a.style.display = "block";
+        b.style.display = c.style.display = "none";
       }
-    );
+    });
 
     const entitiesButton = document.getElementById("topicsbtn");
-    entitiesButton.addEventListener(
-      "click",
-      () => {
-        var x = document.getElementById("entities-div");
-        if (x.style.display === "none") {
-          b.style.display = "block";
-          a.style.display = c.style.display = "none";
-        } else {
-          b.style.display = "block";
-          c.style.display = a.style.display = "none";
-        }
+    entitiesButton.addEventListener("click", () => {
+      var x = document.getElementById("entities-div");
+      if (x.style.display === "none") {
+        b.style.display = "block";
+        a.style.display = c.style.display = "none";
+      } else {
+        b.style.display = "block";
+        c.style.display = a.style.display = "none";
       }
-    );
+    });
 
     const summaryButton = document.getElementById("summarybtn");
-    summaryButton.addEventListener(
-      "click",
-      () => {
-        var x = document.getElementById("summary-div");
+    summaryButton.addEventListener("click", () => {
+      var x = document.getElementById("summary-div");
 
-        if (x.style.display === "none") {
-          c.style.display = "block";
-          a.style.display = b.style.display = "none";
-        } else {
-          c.style.display = "block";
-          a.style.display = b.style.display = "none";
-        }
+      if (x.style.display === "none") {
+        c.style.display = "block";
+        a.style.display = b.style.display = "none";
+      } else {
+        c.style.display = "block";
+        a.style.display = b.style.display = "none";
       }
-    );
-
+    });
 
     const button = document.getElementById("capture-btn");
     button.addEventListener(
@@ -200,8 +167,7 @@ document.addEventListener(
       () => {
         chrome.extension.getBackgroundPage().console.log("hello");
         // Launch the screen capture
-        button.innerHTML = "Capturing..."
-
+        button.innerHTML = "Capturing...";
 
         // function modifyDOM() {
         //     //You can play with your DOM here or check URL against your regex
@@ -218,7 +184,6 @@ document.addEventListener(
         //     chrome.extension.getBackgroundPage().console.log('Popup script:')
         //     chrome.extension.getBackgroundPage().console.log(results[0]);
         // });
-
 
         // Test communicating with backend
         // fetch('http://localhost:8000/process', {
@@ -242,17 +207,16 @@ document.addEventListener(
 
         //         var wiki_link = `https://en.wikipedia.org/wiki/${line['entity']}`
 
-        //         // var iframe = document.createElement('iframe'); 
+        //         // var iframe = document.createElement('iframe');
         //         // iframe.style.background = "white";
         //         // iframe.style.height = "100%";
         //         // iframe.style.width = "500px";
         //         // iframe.style.position = "relative";
         //         // iframe.style.top = "0px";
         //         // iframe.style.right = "0px";
-        //         // iframe.frameBorder = "none"; 
+        //         // iframe.frameBorder = "none";
         //         // iframe.src = wiki_link
         //         // iframe.className=""
-
 
         //         // entities.innerHTML += `<a class="link" href="${wiki_link}" target="_blank">${line['entity']}</a> (${line['label']})`
         //         entities.innerHTML += `
@@ -264,7 +228,7 @@ document.addEventListener(
         //         // entities.innerHTML += '<br>'
         //         // entities.innerHTML += `
         //         //     <div class="link" id="${'box_'+wiki_link}">
-        //         //     </div> 
+        //         //     </div>
         //         // `
         //         // entities.innerHTML += `<br>`
 
@@ -274,15 +238,12 @@ document.addEventListener(
         //     }
         //     entities.innerHTML += "<br><br>"
 
-
         //     var summary = document.getElementById('summary')
         //     summary.innerHTML += result['summary']
         //     summary.innerHTML += `<br>`
 
-
         //     // Reset button text back to normal
         //     button.innerHTML = "wake up studybuddy"
-
 
         // })
         // .catch(error => {
