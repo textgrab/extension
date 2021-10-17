@@ -4,14 +4,4 @@
     background-color: rgba(0, 0, 0, 0.6)!important; 
     filter: saturate(70%)!important;
     filter: invert(85%)!important;
-
-}
-
-#textgrab-hover-target:before {
-    content: '';
-    position: absolute;
-    height: 100%;
-    width: 100%;
-
-
 }

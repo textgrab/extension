@@ -21,7 +21,6 @@ document.addEventListener('mousemove', function (e) {
 
         // Add a visited class name to the element. So we can style it.
         srcElement.classList.add(MOUSE_VISITED_CLASSNAME);
-        srcElement.id = "textgrab-hover-target"
 
 
         // The current element is now the previous. So we can remove the class
