@@ -198,7 +198,7 @@ document.addEventListener(
         //     var notes = document.getElementById('notes-list')
         //     for (let line of result['lines']) {
         //         notes.innerHTML += `<li>${line['text']}</li>`
-        //     }
+        //     }F
         //     notes.innerHTML += "<br>"
 
         //     // List out detected entities and fetch corresponding wiki page
@@ -208,7 +208,7 @@ document.addEventListener(
         //         var wiki_link = `https://en.wikipedia.org/wiki/${line['entity']}`
 
         //         // var iframe = document.createElement('iframe');
-        //         // iframe.style.background = "white";
+        //         // iframeF.style.background = "white";
         //         // iframe.style.height = "100%";
         //         // iframe.style.width = "500px";
         //         // iframe.style.position = "relative";

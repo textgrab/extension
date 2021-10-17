@@ -1,15 +1,31 @@
 {
-  "name": "studybuddy",
+  "name": "TextGrab",
   "version": "0.0.1",
   "manifest_version": 2,
-  "description": "study buddy ...",
+  "description": "Grab and analyze text from videos and images",
   "icons": {
     "16": "icons/icon16.png",
     "48": "icons/icon48.png",
     "128": "icons/icon128.png"
   },
+  "content_scripts": [
+    {
+      "matches": [
+        "http://*/*",
+        "https://*/*"
+      ],
+      "css": [
+        "src/hover_highlight/hover_highlight.css"
+      ],
+      "js": [
+        "src/hover_highlight/hover_highlight.js"
+      ]
+    }
+  ],
   "background": {
-    "scripts": ["background.js"],
+    "scripts": [
+      "background.js"
+    ],
     "persistent": true
   },
   "browser_action": {
@@ -25,5 +41,12 @@
       "description": "Put your cursor on an image/video surface and use this shortcut to enable copying text on it"
     }
   },
-  "permissions": ["https://*/*", "http://*/*", "activeTab", "tabs", "storage"]
+  "permissions": [
+    "https://*/*",
+    "http://*/*",
+    "activeTab",
+    "declarativeContent",
+    "tabs",
+    "storage"
+  ]
 }
