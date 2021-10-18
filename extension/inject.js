@@ -25,14 +25,21 @@
      */
     showRects(rects) {
       this.clear();
+      let leftOffset =
+        this.target.getBoundingClientRect().left +
+        (window.pageXOffset || document.documentElement.scrollLeft);
+      let topOffset =
+        this.target.getBoundingClientRect().top +
+        (window.pageYOffset || document.documentElement.scrollTop);
+
       for (var i = 0; i < rects.length; i++) {
         let rect = rects[i];
         if (rect.value) {
           let text = document.createElement("div");
           text.style.position = "absolute";
           text.innerHTML = rect.value;
-          text.style.left = rect.x + this.target.getBoundingClientRect().left + "px";
-          text.style.top = rect.y + this.target.getBoundingClientRect().top + "px";
+          text.style.left = rect.x + leftOffset + "px";
+          text.style.top = rect.y + topOffset + "px";
           text.style.textAlign = "center";
           text.style.color = "transparent";
 
@@ -45,9 +52,9 @@
           // text.style.transform = `scale(${rect.width / text.offsetWidth}, 1)`;
           this.renderedRects.push(text);
         }
-        //   ctx.fillStyle = "rgba(129, 207, 224, 0.4)";
+        // ctx.fillStyle = "rgba(129, 207, 224, 0.4)";
 
-        //   ctx.fillRect(rect.x, rect.y, rect.width, rect.height);
+        // ctx.fillRect(rect.x, rect.y, rect.width, rect.height);
       }
     }
 
@@ -122,7 +129,7 @@
   async function getProcessedBoundingRects(data) {
     // to remove the 22 characters before the image data
     data = data.substr(22);
-    let res = await fetch("http://localhost:8000/process", {
+    let res = await fetch("https://api.textgrab.io/process", {
       method: "POST",
       headers: {
         Accept: "application/json",
@@ -213,7 +220,7 @@
 
       setTimeout(() => {
         renderer.clear();
-      }, 5000);
+      }, 7000);
     })();
   }
 }
