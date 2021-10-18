@@ -25,10 +25,6 @@
      */
     showRects(rects) {
       this.clear();
-      console.log(
-        document.body.getBoundingClientRect().top,
-        this.target.getBoundingClientRect().top
-      );
       let leftOffset =
         this.target.getBoundingClientRect().left +
         (window.pageXOffset || document.documentElement.scrollLeft);
