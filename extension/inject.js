@@ -220,7 +220,7 @@
 
       setTimeout(() => {
         renderer.clear();
-      }, 10000);
+      }, 7000);
     })();
   }
 }
