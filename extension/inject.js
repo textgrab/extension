@@ -5,11 +5,7 @@
       this.y = y;
       this.width = width;
       this.height = height;
-      this.value = value;
-    }
-
-    repr() {
-      return `${this.value}${this.x}${this.y}`;
+      this.value = value; // This is a special field to hold the text contained within the Rect
     }
   }
 
@@ -21,10 +17,14 @@
 
     /**
      * Inserts HTML elements into the DOM for each Rect
-     * @param {*} rects list of Rects
+     * @param {Array<Rect>} rects list of Rects to display
      */
     showRects(rects) {
+      // clear the previous rects
       this.clear();
+
+      // calculate offsets of target to position text at proper position
+      // accounting for scroll
       let leftOffset =
         this.target.getBoundingClientRect().left +
         (window.pageXOffset || document.documentElement.scrollLeft);
@@ -34,27 +34,24 @@
 
       for (var i = 0; i < rects.length; i++) {
         let rect = rects[i];
-        if (rect.value) {
-          let text = document.createElement("div");
-          text.style.position = "absolute";
-          text.innerHTML = rect.value;
-          text.style.left = rect.x + leftOffset + "px";
-          text.style.top = rect.y + topOffset + "px";
-          text.style.textAlign = "center";
-          text.style.color = "transparent";
+        if (!rect.value) continue;
 
-          text.style.backgroundColor = "rgba(0, 0, 255, 0.2)";
+        let text = document.createElement("div");
+        text.style.position = "absolute";
+        text.innerHTML = rect.value;
+        text.style.left = rect.x + leftOffset + "px";
+        text.style.top = rect.y + topOffset + "px";
+        text.style.textAlign = "center";
+        text.style.color = "transparent";
 
-          text.style.setProperty("z-index", "2147483638", "important");
-          text.style.userSelect = "text";
-          text.style.fontSize = `${rect.height}px`;
-          document.body.appendChild(text);
-          // text.style.transform = `scale(${rect.width / text.offsetWidth}, 1)`;
-          this.renderedRects.push(text);
-        }
-        // ctx.fillStyle = "rgba(129, 207, 224, 0.4)";
+        text.style.backgroundColor = "rgba(0, 0, 255, 0.2)";
 
-        // ctx.fillRect(rect.x, rect.y, rect.width, rect.height);
+        text.style.setProperty("z-index", "2147483638", "important");
+        text.style.userSelect = "text";
+        text.style.fontSize = `${rect.height}px`;
+        document.body.appendChild(text);
+        // text.style.transform = `scale(${rect.width / text.offsetWidth}, 1)`;
+        this.renderedRects.push(text);
       }
     }
 
@@ -76,6 +73,8 @@
     }
 
     async getBase64Data() {
+      // to allow for manipulation of videos with CORS restrictions
+      this.video.crossOrigin = "anonymous";
       let stream = this.video.captureStream();
       let imageCapture = new ImageCapture(stream.getVideoTracks()[0]);
       let frame = await imageCapture.grabFrame();
@@ -103,8 +102,8 @@
       this.ghostCanvas = ghostCanvas;
     }
     async getBase64Data() {
-      console.log("IMAGE", this.image);
-      this.image.crossOrigin = "Anonymous";
+      // to allow for manipulation of images with CORS restrictions
+      this.image.crossOrigin = "anonymous";
       let frame = await createImageBitmap(this.image);
       var context = this.ghostCanvas.getContext("bitmaprenderer");
       const [frameWidth, frameHeight] = [frame.width, frame.height];
@@ -122,8 +121,7 @@
   }
 
   /**
-   *
-   * @param {str} data Image data
+   * @param {str} data Image data to send to the API
    * @returns JSON object of response of API /process
    */
   async function getProcessedBoundingRects(data) {
@@ -143,6 +141,8 @@
 
   /**
    * Returns the element the mouse is currently over. Requires mouse movement
+   * This adds an event listener waiting for the mouse to move,
+   * and then removes the event listener right away
    * @returns Promise<HTMLElement>
    */
   function getElementAtCursor() {
@@ -157,41 +157,73 @@
   }
 
   /**
-   *  Returns the target (either <video> tag or <img> tag)
-   * @param {*} ghostElement : The ghost canvas used to get the base64 version of an image
-   * @returns Video | Image
+   * Recursive DFS search for any valid node that is a video or image element
+   * @param {HTMLElement} root
+   * @param {HTMLElement} ghostElement (used only to create {Image} or {Video} instances)
+   * @returns {Video | Image | null}
    */
-  async function getTarget(ghostElement) {
-    let elementAtCursor = await getElementAtCursor();
-    switch (elementAtCursor.nodeName) {
+  function getTargetHelper(root, ghostElement) {
+    if (root == null) return null;
+    switch (root.nodeName) {
       case "VIDEO":
-        return new Video(elementAtCursor, ghostElement);
+        return new Video(root, ghostElement);
       case "IMG":
-        return new Image(elementAtCursor, ghostElement);
+        return new Image(root, ghostElement);
       default: {
-        let element = document.querySelector("video");
-        if (element != null) return new Video(element, ghostElement);
+        var children = Array.from(root.children);
+        // On D2L, video is nested within shadowRoot for some reason
+        // so we add those children as well
+        if (root.shadowRoot) {
+          children = children.concat(Array.from(root.shadowRoot.children));
+        }
+
+        // walk through the children
+        for (var i = 0; i < children.length; i++) {
+          let element = getTargetHelper(children[i], ghostElement);
+          if (element != null) return element;
+        }
+
         return null;
       }
     }
   }
 
+  /**
+   *  Returns the target (either <video> tag or <img> tag). Since getElementAtCursor
+   *  returns the topmost element, we recursively walk the tree to find a video/img element
+   *  or return null if no element is found
+   * @param {HTMLElement} ghostElement : The ghost canvas used to get the base64 version of an image
+   * @returns {Video | Image | null}
+   */
+  async function getTarget(ghostElement) {
+    // get the topmost element that is at the same position as the cursor
+    let elementAtCursor = await getElementAtCursor();
+    let element = getTargetHelper(elementAtCursor, ghostElement);
+    if (element != null) return element;
+
+    // Fallback: just find any video on the site
+    element = document.querySelector("video");
+    if (element != null) return new Video(element, ghostElement);
+
+    return null;
+  }
+
   function main() {
-    // set up ghost canvas to put the image
+    // set up ghost canvas to put the image (we need this in order to get base64 string)
     var ghost = document.createElement("canvas");
     ghost.style.position = "absolute";
     ghost.style.display = "none";
     document.body.appendChild(ghost);
 
     (async function () {
+      // get the video / image target if it exists
       let target = await getTarget(ghost);
-      console.log("HERE", target);
+      console.log("Target", target);
       if (target == null) return;
 
+      // set up the renderer on the target element
       let renderer = new Renderer(target.getHTMLElement());
       let image = await target.getBase64Data();
-
-      console.log(image);
 
       // Hit API and update extension
       let response = await getProcessedBoundingRects(image.data);
@@ -216,11 +248,15 @@
         );
       });
 
+      // Show the results via a text overlay to the user
       renderer.showRects(selectedRects);
 
+      const REFRESH_RATE = 7000;
+
+      // we clear the text overlay after x amount of seconds
       setTimeout(() => {
         renderer.clear();
-      }, 7000);
+      }, REFRESH_RATE);
     })();
   }
 }
