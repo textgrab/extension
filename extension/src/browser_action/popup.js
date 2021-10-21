@@ -108,15 +108,42 @@ document.addEventListener(
       });
     });
 
-    function runInject() {
-      chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
-        // query the active tab, which will be only one tab
-        //and inject the script in it
-        chrome.tabs.executeScript(tabs[0].id, { file: "inject.js" });
+    function enableHover() {
+
+
+
+
+        chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+          // Enable hover highlight mode
+          chrome.tabs.sendMessage(tabs[0].id, {hover: true}, function(response) {
+              console.log('enabled hover');
+            });
+            // When the user clicks a button, analyze
+            document.addEventListener('click', runInject, false, {once: true});
+
+
       });
+
     }
 
-    document.getElementById("capture-btn").addEventListener("click", runInject);
+    function runInject() {
+      alert("RUNINJECT")
+      chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+
+        // Disable hover effect
+        chrome.tabs.sendMessage(tabs[0].id, {hover: false}, function(response) {
+            console.log('disabled hover');
+           });
+
+
+      // query the active tab, which will be only one tab
+      //and inject the script in it
+      chrome.tabs.executeScript(tabs[0].id, { file: "inject.js" });
+    });
+  }
+
+
+    document.getElementById("capture-btn").addEventListener("click", enableHover);
 
     // Get session id
 
