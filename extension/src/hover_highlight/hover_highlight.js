@@ -6,8 +6,7 @@ var MOUSE_VISITED_CLASSNAME = 'crx_mouse_visited';
 // Previous dom, that we want to track, so we can remove the previous styling.
 var prevDOM = null;
 
-// Mouse listener for any move event on the current document.
-document.addEventListener('mousemove', function (e) {
+function hoverHighlight (e) {
     let srcElement = e.srcElement;
 
     // Lets check if our underlying element is a IMG or VID.
@@ -29,4 +28,25 @@ document.addEventListener('mousemove', function (e) {
         console.info(srcElement.currentSrc);
         console.dir(srcElement);
     }
-}, false);
+}
+
+chrome.runtime.onMessage.addListener(
+    function(request, sender, sendResponse) {
+      if (request.hover == true) {
+        sendResponse({type: "hover_highlight"});
+
+        // Mouse listener for any move event on the current document.
+        document.addEventListener('mousemove', hoverHighlight, false);
+        chrom
+      }
+      else if (request.hover == false) {
+        // Mouse listener for any move event on the current document.
+        document.removeEventListener('mousemove', hoverHighlight, false);
+      }
+      sendResponse({message: "hover highlight"});
+
+  });
+  
+
+
+
