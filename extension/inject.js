@@ -269,6 +269,7 @@
         response = await getProcessedBoundingRects(image.data);
       } catch (e) {
         renderer.clear();
+        return;
       }
 
       // convert API response into Rects
