@@ -1,21 +1,24 @@
-@import url('https://fonts.googleapis.com/css2?family=Dosis:wght@300;400;500;600;700&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Dosis:wght@300;400;500;600;700&display=swap");
 
-html, body {
-  font-family: 'Dosis', sans-serif;
+html,
+body {
+  font-family: "Dosis", sans-serif;
   font-size: 14px;
   margin: 0px;
   padding: 0px;
-  width: 400px;
-
-  border: 0.5px solid #fff;
-  box-shadow: 0 4px 8px 0 rgb(0 0 0 / 20%);
+  width: 350px;
+  border-radius: 25px;
+  background-color: #262626;
+  /* border: 0.5px solid #fff; */
+  /* box-shadow: 0 4px 8px 0 rgb(0 0 0 / 20%); */
 }
 
 h1 {
   font-size: 32px;
   font-weight: 700;
-  color: #5580E9;
-  margin-top: 20px;
+  color: #60bcff;
+  margin-top: 10px;
+  margin-left: 50px;
 }
 
 h3 {
@@ -23,12 +26,15 @@ h3 {
 }
 
 img {
-  margin-top: -10px;
   width: 40px;
-  float: right;
+  float: left;
 }
 
-.container{
+.description {
+  color: white;
+}
+
+.container {
   padding: 10px;
 }
 
@@ -57,8 +63,8 @@ img {
   min-width: 150px;
   min-height: 35px;
   border-radius: 25px;
-  background-color: #5580e9;
-  font-family: 'Dosis', sans-serif;
+  background-color: #4ab3ff;
+  font-family: "Dosis", sans-serif;
   font-weight: 500;
   font-size: 15px;
   padding: 2px;
@@ -70,7 +76,7 @@ img {
 
 #capture-btn:hover {
   cursor: pointer;
-  background-color: #4e72ce;
+  background-color: #0b85dc;
 }
 
 .ifrm1 {
@@ -82,11 +88,9 @@ img {
   transition: opacity 1.5s linear;
 }
 
-
 .link {
-  background-color: "red"
+  background-color: "red";
 }
-
 
 .btns {
   margin: auto;
@@ -95,11 +99,13 @@ img {
   justify-content: center;
 }
 
-#notesbtn, #topicsbtn, #summarybtn {
+#notesbtn,
+#topicsbtn,
+#summarybtn {
   margin: 15px 8px;
   padding: 4px;
   min-height: 27px;
-  font-family: 'Dosis', sans-serif;
+  font-family: "Dosis", sans-serif;
   font-size: 14px;
   border: 2px solid #7598f1;
   box-sizing: border-box;
@@ -108,18 +114,22 @@ img {
   cursor: pointer;
 }
 
-#notesbtn:hover, #topicsbtn:hover, #summarybtn:hover {
+#notesbtn:hover,
+#topicsbtn:hover,
+#summarybtn:hover {
   cursor: pointer;
   background-color: #7fa2fd;
 }
 
-#notes-div, #entities-div, #summary-div {
+#notes-div,
+#entities-div,
+#summary-div {
   display: none;
   border-bottom: 0.5px solid #dadada;
-
 }
 
-#opennotes, #opentopics {
+#opennotes,
+#opentopics {
   margin-left: 24px;
   font-weight: 700;
   cursor: pointer;
@@ -129,4 +139,3 @@ img {
   font-weight: 700;
   cursor: pointer;
 }
-
