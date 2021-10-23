@@ -1,10 +1,9 @@
-// if you checked "fancy-settings" in extensionizr.com, uncomment this lines
-
 // var settings = new Store("settings", {
 //     "sample_setting": "This is how you use Store.js to remember values"
 // });
 
 chrome.runtime.onMessage.addListener(function (message, sender) {
+  console.log(message);
   if (!message.myPopupIsOpen) return;
   chrome.extension.getBackgroundPage().console.log("Running inject");
 
@@ -17,7 +16,6 @@ chrome.runtime.onMessage.addListener(function (message, sender) {
 chrome.commands.onCommand.addListener(function (command) {
   switch (command) {
     case "textgrab": {
-      console.log("INJECT SCRIPT NOW");
       chrome.tabs.executeScript(null, {
         file: "./inject.js",
       });

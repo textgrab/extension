@@ -12,8 +12,7 @@
   "content_scripts": [
     {
       "matches": ["http://*/*", "https://*/*"],
-      "css": ["src/hover_highlight/hover_highlight.css"],
-      "js": ["src/hover_highlight/hover_highlight.js"]
+      "css": ["src/hover_highlight/hover_highlight.css"]
     }
   ],
   "background": {

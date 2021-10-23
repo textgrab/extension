@@ -1,7 +1,10 @@
-.crx_mouse_visited {
-    outline: 0.5em dashed #5166bb !important;
-    /* filter: sepia(80%)!important; */
-    background-color: rgba(0, 0, 0, 0.6)!important; 
-    filter: saturate(70%)!important;
-    filter: invert(85%)!important;
+.crx_mouse_visited:hover {
+  outline: 0.5em dashed #4ab3ff !important;
+  outline-offset: -10px !important;
+  /* filter: sepia(80%)!important; */
+  background-color: rgba(0, 0, 0, 0.6) !important;
+  transition: all 0.2s ease-in-out;
+  /* filter: saturate(70%) !important; */
+  filter: invert(25%) !important;
+  cursor: pointer;
 }

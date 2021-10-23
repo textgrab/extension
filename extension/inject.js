@@ -104,7 +104,12 @@
     async getBase64Data() {
       // to allow for manipulation of images with CORS restrictions
       this.image.crossOrigin = "anonymous";
-      let frame = await createImageBitmap(this.image);
+      let frame = await new Promise((resolve, reject) => {
+        this.image.onload = () => {
+          resolve(createImageBitmap(this.image));
+        };
+        this.image.onerror = () => reject("Image error");
+      });
       var context = this.ghostCanvas.getContext("bitmaprenderer");
       const [frameWidth, frameHeight] = [frame.width, frame.height];
       context.transferFromImageBitmap(frame);
@@ -140,19 +145,40 @@
   }
 
   /**
-   * Returns the element the mouse is currently over. Requires mouse movement
-   * This adds an event listener waiting for the mouse to move,
-   * and then removes the event listener right away
-   * @returns Promise<HTMLElement>
+   * Returns the target (either Video or Image) after user selects it.
+   * returns the topmost element, we recursively walk the tree to find a video/img element
+   * or raise an error if no element is found.
+   * @param {HTMLElement} ghostElement : The ghost canvas used to get the base64 version of an image
+   * @returns {Promise<Video | Image>}
    */
-  function getElementAtCursor() {
+  function getTarget(ghostElement) {
     return new Promise(function (resolve, reject) {
-      let listener = (ev) => {
-        let elementMouseIsOver = document.elementFromPoint(ev.x, ev.y);
-        window.removeEventListener("mousemove", listener);
-        resolve(elementMouseIsOver);
-      };
-      window.addEventListener("mousemove", listener);
+      // Unique ID for the className.
+      var MOUSE_VISITED_CLASSNAME = "crx_mouse_visited";
+
+      let elements = document.querySelectorAll("img,video");
+      elements.forEach((el) => {
+        el.classList.add(MOUSE_VISITED_CLASSNAME);
+      });
+
+      function handleClick(e) {
+        window.removeEventListener("click", handleClick);
+        elements.forEach((el) => {
+          el.classList.remove(MOUSE_VISITED_CLASSNAME);
+        });
+
+        let srcElement = document.elementFromPoint(e.x, e.y);
+        let res = getTargetHelper(srcElement, ghostElement);
+        e.preventDefault();
+        e.stopPropagation();
+        if (res == null) {
+          reject("Selected element is not supported");
+        } else {
+          resolve(res);
+        }
+        return false;
+      }
+      window.addEventListener("click", handleClick);
     });
   }
 
@@ -188,26 +214,6 @@
     }
   }
 
-  /**
-   *  Returns the target (either <video> tag or <img> tag). Since getElementAtCursor
-   *  returns the topmost element, we recursively walk the tree to find a video/img element
-   *  or return null if no element is found
-   * @param {HTMLElement} ghostElement : The ghost canvas used to get the base64 version of an image
-   * @returns {Video | Image | null}
-   */
-  async function getTarget(ghostElement) {
-    // get the topmost element that is at the same position as the cursor
-    let elementAtCursor = await getElementAtCursor();
-    let element = getTargetHelper(elementAtCursor, ghostElement);
-    if (element != null) return element;
-
-    // Fallback: just find any video on the site
-    element = document.querySelector("video");
-    if (element != null) return new Video(element, ghostElement);
-
-    return null;
-  }
-
   function main() {
     // set up ghost canvas to put the image (we need this in order to get base64 string)
     var ghost = document.createElement("canvas");
@@ -227,9 +233,9 @@
 
       // Hit API and update extension
       let response = await getProcessedBoundingRects(image.data);
-      chrome.runtime.sendMessage(response, function (response) {
-        console.log("sending message");
-      });
+      // chrome.runtime.sendMessage(response, function (response) {
+      //   console.log("sending message");
+      // });
 
       // convert API response into Rects
       var selectedRects = [];
@@ -251,11 +257,29 @@
       // Show the results via a text overlay to the user
       renderer.showRects(selectedRects);
 
-      const REFRESH_RATE = 7000;
+      const REFRESH_RATE = 5000;
 
+      let mousedown = false;
+      window.addEventListener("mousedown", () => {
+        mousedown = true;
+      });
+      window.addEventListener("mouseup", () => {
+        mousedown = false;
+      });
       // we clear the text overlay after x amount of seconds
+      // and until user mouse is not down
       setTimeout(() => {
-        renderer.clear();
+        const clear = () => {
+          setTimeout(() => {
+            renderer.clear();
+            window.removeEventListener("mouseup", clear);
+          }, 1500);
+        };
+        if (mousedown) {
+          window.addEventListener("mouseup", clear);
+        } else {
+          clear();
+        }
       }, REFRESH_RATE);
     })();
   }
