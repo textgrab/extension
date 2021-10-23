@@ -12,7 +12,21 @@
   class Renderer {
     constructor(target) {
       this.renderedRects = [];
+      this.spinner = null;
       this.target = target;
+    }
+
+    getTargetOffsets() {
+      // calculate offsets of target to position text at proper position
+      // and account for scroll
+      let leftOffset =
+        this.target.getBoundingClientRect().left +
+        (window.pageXOffset || document.documentElement.scrollLeft);
+      let topOffset =
+        this.target.getBoundingClientRect().top +
+        (window.pageYOffset || document.documentElement.scrollTop);
+
+      return { left: leftOffset, top: topOffset };
     }
 
     /**
@@ -24,13 +38,7 @@
       this.clear();
 
       // calculate offsets of target to position text at proper position
-      // accounting for scroll
-      let leftOffset =
-        this.target.getBoundingClientRect().left +
-        (window.pageXOffset || document.documentElement.scrollLeft);
-      let topOffset =
-        this.target.getBoundingClientRect().top +
-        (window.pageYOffset || document.documentElement.scrollTop);
+      const { left: leftOffset, top: topOffset } = this.getTargetOffsets();
 
       for (var i = 0; i < rects.length; i++) {
         let rect = rects[i];
@@ -44,9 +52,9 @@
         text.style.textAlign = "center";
         text.style.color = "transparent";
 
-        text.style.backgroundColor = "rgba(0, 0, 255, 0.2)";
+        text.style.backgroundColor = "rgba(72, 167, 250, 0.221)";
 
-        text.style.setProperty("z-index", "2147483638", "important");
+        text.style.setProperty("z-index", "2147483637", "important");
         text.style.userSelect = "text";
         text.style.fontSize = `${rect.height}px`;
         document.body.appendChild(text);
@@ -63,6 +71,27 @@
         document.body.removeChild(val);
       });
       this.renderedRects = [];
+      this.showSpinner(false);
+    }
+
+    showSpinner(show) {
+      if (this.spinner != null) {
+        document.body.removeChild(this.spinner);
+        this.spinner = null;
+      }
+      if (show) {
+        let { left, top } = this.getTargetOffsets();
+        left += 10;
+        top += 10;
+        let loader = document.createElement("div");
+        loader.className = "textgrab-loader";
+        loader.style.position = "absolute";
+        loader.style.setProperty("z-index", "2147483637", "important");
+        loader.style.left = left + "px";
+        loader.style.top = top + "px";
+        document.body.appendChild(loader);
+        this.spinner = loader;
+      }
     }
   }
 
@@ -229,13 +258,18 @@
 
       // set up the renderer on the target element
       let renderer = new Renderer(target.getHTMLElement());
-      let image = await target.getBase64Data();
+      renderer.showSpinner(true);
 
-      // Hit API and update extension
-      let response = await getProcessedBoundingRects(image.data);
-      // chrome.runtime.sendMessage(response, function (response) {
-      //   console.log("sending message");
-      // });
+      let response, image;
+
+      try {
+        image = await target.getBase64Data();
+
+        // Hit API and update extension
+        response = await getProcessedBoundingRects(image.data);
+      } catch (e) {
+        renderer.clear();
+      }
 
       // convert API response into Rects
       var selectedRects = [];
