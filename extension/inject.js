@@ -175,7 +175,7 @@
 
   /**
    * Returns the target (either Video or Image) after user selects it.
-   * returns the topmost element, we recursively walk the tree to find a video/img element
+   * We recursively walk the tree to find a video/img element from a click event
    * or raise an error if no element is found.
    * @param {HTMLElement} ghostElement : The ghost canvas used to get the base64 version of an image
    * @returns {Promise<Video | Image>}
@@ -188,10 +188,11 @@
       let elements = document.querySelectorAll("img,video");
       elements.forEach((el) => {
         el.classList.add(MOUSE_VISITED_CLASSNAME);
+        el.addEventListener("click", handleClick);
       });
 
       function handleClick(e) {
-        window.removeEventListener("click", handleClick);
+        e.srcElement.removeEventListener("click", handleClick);
         elements.forEach((el) => {
           el.classList.remove(MOUSE_VISITED_CLASSNAME);
         });
@@ -207,7 +208,6 @@
         }
         return false;
       }
-      window.addEventListener("click", handleClick);
     });
   }
 
