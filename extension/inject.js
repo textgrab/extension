@@ -12,7 +12,21 @@
   class Renderer {
     constructor(target) {
       this.renderedRects = [];
+      this.spinner = null;
       this.target = target;
+    }
+
+    getTargetOffsets() {
+      // calculate offsets of target to position text at proper position
+      // and account for scroll
+      let leftOffset =
+        this.target.getBoundingClientRect().left +
+        (window.pageXOffset || document.documentElement.scrollLeft);
+      let topOffset =
+        this.target.getBoundingClientRect().top +
+        (window.pageYOffset || document.documentElement.scrollTop);
+
+      return { left: leftOffset, top: topOffset };
     }
 
     /**
@@ -24,13 +38,7 @@
       this.clear();
 
       // calculate offsets of target to position text at proper position
-      // accounting for scroll
-      let leftOffset =
-        this.target.getBoundingClientRect().left +
-        (window.pageXOffset || document.documentElement.scrollLeft);
-      let topOffset =
-        this.target.getBoundingClientRect().top +
-        (window.pageYOffset || document.documentElement.scrollTop);
+      const { left: leftOffset, top: topOffset } = this.getTargetOffsets();
 
       for (var i = 0; i < rects.length; i++) {
         let rect = rects[i];
@@ -44,9 +52,9 @@
         text.style.textAlign = "center";
         text.style.color = "transparent";
 
-        text.style.backgroundColor = "rgba(0, 0, 255, 0.2)";
+        text.style.backgroundColor = "rgba(72, 167, 250, 0.221)";
 
-        text.style.setProperty("z-index", "2147483638", "important");
+        text.style.setProperty("z-index", "2147483637", "important");
         text.style.userSelect = "text";
         text.style.fontSize = `${rect.height}px`;
         document.body.appendChild(text);
@@ -63,6 +71,27 @@
         document.body.removeChild(val);
       });
       this.renderedRects = [];
+      this.showSpinner(false);
+    }
+
+    showSpinner(show) {
+      if (this.spinner != null) {
+        document.body.removeChild(this.spinner);
+        this.spinner = null;
+      }
+      if (show) {
+        let { left, top } = this.getTargetOffsets();
+        left += 10;
+        top += 10;
+        let loader = document.createElement("div");
+        loader.className = "textgrab-loader";
+        loader.style.position = "absolute";
+        loader.style.setProperty("z-index", "2147483637", "important");
+        loader.style.left = left + "px";
+        loader.style.top = top + "px";
+        document.body.appendChild(loader);
+        this.spinner = loader;
+      }
     }
   }
 
@@ -104,7 +133,12 @@
     async getBase64Data() {
       // to allow for manipulation of images with CORS restrictions
       this.image.crossOrigin = "anonymous";
-      let frame = await createImageBitmap(this.image);
+      let frame = await new Promise((resolve, reject) => {
+        this.image.onload = () => {
+          resolve(createImageBitmap(this.image));
+        };
+        this.image.onerror = () => reject("Image error");
+      });
       var context = this.ghostCanvas.getContext("bitmaprenderer");
       const [frameWidth, frameHeight] = [frame.width, frame.height];
       context.transferFromImageBitmap(frame);
@@ -140,19 +174,40 @@
   }
 
   /**
-   * Returns the element the mouse is currently over. Requires mouse movement
-   * This adds an event listener waiting for the mouse to move,
-   * and then removes the event listener right away
-   * @returns Promise<HTMLElement>
+   * Returns the target (either Video or Image) after user selects it.
+   * We recursively walk the tree to find a video/img element from a click event
+   * or raise an error if no element is found.
+   * @param {HTMLElement} ghostElement : The ghost canvas used to get the base64 version of an image
+   * @returns {Promise<Video | Image>}
    */
-  function getElementAtCursor() {
+  function getTarget(ghostElement) {
     return new Promise(function (resolve, reject) {
-      let listener = (ev) => {
-        let elementMouseIsOver = document.elementFromPoint(ev.x, ev.y);
-        window.removeEventListener("mousemove", listener);
-        resolve(elementMouseIsOver);
-      };
-      window.addEventListener("mousemove", listener);
+      // Unique ID for the className.
+      var MOUSE_VISITED_CLASSNAME = "crx_mouse_visited";
+
+      let elements = document.querySelectorAll("img,video");
+      elements.forEach((el) => {
+        el.classList.add(MOUSE_VISITED_CLASSNAME);
+        el.addEventListener("click", handleClick);
+      });
+
+      function handleClick(e) {
+        e.srcElement.removeEventListener("click", handleClick);
+        elements.forEach((el) => {
+          el.classList.remove(MOUSE_VISITED_CLASSNAME);
+        });
+
+        let srcElement = document.elementFromPoint(e.x, e.y);
+        let res = getTargetHelper(srcElement, ghostElement);
+        e.preventDefault();
+        e.stopPropagation();
+        if (res == null) {
+          reject("Selected element is not supported");
+        } else {
+          resolve(res);
+        }
+        return false;
+      }
     });
   }
 
@@ -188,26 +243,6 @@
     }
   }
 
-  /**
-   *  Returns the target (either <video> tag or <img> tag). Since getElementAtCursor
-   *  returns the topmost element, we recursively walk the tree to find a video/img element
-   *  or return null if no element is found
-   * @param {HTMLElement} ghostElement : The ghost canvas used to get the base64 version of an image
-   * @returns {Video | Image | null}
-   */
-  async function getTarget(ghostElement) {
-    // get the topmost element that is at the same position as the cursor
-    let elementAtCursor = await getElementAtCursor();
-    let element = getTargetHelper(elementAtCursor, ghostElement);
-    if (element != null) return element;
-
-    // Fallback: just find any video on the site
-    element = document.querySelector("video");
-    if (element != null) return new Video(element, ghostElement);
-
-    return null;
-  }
-
   function main() {
     // set up ghost canvas to put the image (we need this in order to get base64 string)
     var ghost = document.createElement("canvas");
@@ -223,13 +258,19 @@
 
       // set up the renderer on the target element
       let renderer = new Renderer(target.getHTMLElement());
-      let image = await target.getBase64Data();
+      renderer.showSpinner(true);
 
-      // Hit API and update extension
-      let response = await getProcessedBoundingRects(image.data);
-      chrome.runtime.sendMessage(response, function (response) {
-        console.log("sending message");
-      });
+      let response, image;
+
+      try {
+        image = await target.getBase64Data();
+
+        // Hit API and update extension
+        response = await getProcessedBoundingRects(image.data);
+      } catch (e) {
+        renderer.clear();
+        return;
+      }
 
       // convert API response into Rects
       var selectedRects = [];
@@ -251,11 +292,29 @@
       // Show the results via a text overlay to the user
       renderer.showRects(selectedRects);
 
-      const REFRESH_RATE = 7000;
+      const REFRESH_RATE = 5000;
 
+      let mousedown = false;
+      window.addEventListener("mousedown", () => {
+        mousedown = true;
+      });
+      window.addEventListener("mouseup", () => {
+        mousedown = false;
+      });
       // we clear the text overlay after x amount of seconds
+      // and until user mouse is not down
       setTimeout(() => {
-        renderer.clear();
+        const clear = () => {
+          setTimeout(() => {
+            renderer.clear();
+            window.removeEventListener("mouseup", clear);
+          }, 1500);
+        };
+        if (mousedown) {
+          window.addEventListener("mouseup", clear);
+        } else {
+          clear();
+        }
       }, REFRESH_RATE);
     })();
   }

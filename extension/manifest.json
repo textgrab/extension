@@ -9,6 +9,12 @@
     "48": "icons/logo48.png",
     "128": "icons/logo128.png"
   },
+  "content_scripts": [
+    {
+      "matches": ["http://*/*", "https://*/*"],
+      "css": ["src/hover_highlight/hover_highlight.css"]
+    }
+  ],
   "background": {
     "scripts": ["background.js"],
     "persistent": true
@@ -26,5 +32,5 @@
       "description": "Put your cursor on an image/video surface and use this shortcut to enable copying text on it"
     }
   },
-  "permissions": ["https://*/*", "http://*/*", "activeTab", "tabs", "storage"]
+  "permissions": ["https://*/*", "http://*/*", "activeTab", "declarativeContent", "tabs", "storage"]
 }
