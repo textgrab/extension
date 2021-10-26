@@ -195,6 +195,7 @@
         e.srcElement.removeEventListener("click", handleClick);
         elements.forEach((el) => {
           el.classList.remove(MOUSE_VISITED_CLASSNAME);
+          el.removeEventListener("click", handleClick);
         });
 
         let srcElement = document.elementFromPoint(e.x, e.y);
