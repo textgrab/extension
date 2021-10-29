@@ -185,6 +185,7 @@
       // Unique ID for the className.
       var MOUSE_VISITED_CLASSNAME = "crx_mouse_visited";
 
+      // window.addEventListener("click", handleClick, false);
       let elements = document.querySelectorAll("img,video");
       elements.forEach((el) => {
         el.classList.add(MOUSE_VISITED_CLASSNAME);
@@ -192,14 +193,16 @@
       });
 
       function handleClick(e) {
+        // window.removeEventListener("click", handleClick);
+
         e.srcElement.removeEventListener("click", handleClick);
         elements.forEach((el) => {
           el.classList.remove(MOUSE_VISITED_CLASSNAME);
           el.removeEventListener("click", handleClick);
         });
 
-        let srcElement = document.elementFromPoint(e.x, e.y);
-        let res = getTargetHelper(srcElement, ghostElement);
+        // let srcElement = document.elementFromPoint(e.x, e.y);
+        let res = getTargetHelper(e.srcElement, ghostElement);
         e.preventDefault();
         e.stopPropagation();
         if (res == null) {
@@ -269,9 +272,12 @@
         // Hit API and update extension
         response = await getProcessedBoundingRects(image.data);
       } catch (e) {
+        console.error(e);
         renderer.clear();
         return;
       }
+
+      console.log("Successful response");
 
       // convert API response into Rects
       var selectedRects = [];
