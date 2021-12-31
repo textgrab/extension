@@ -74,9 +74,10 @@
       this.showSpinner(false);
     }
 
+    // Target element is needed to insert the spinner on top of the element properly
     showSpinner(show) {
       if (this.spinner != null) {
-        document.body.removeChild(this.spinner);
+        this.target.parentElement.removeChild(this.spinner);
         this.spinner = null;
       }
       if (show) {
@@ -86,10 +87,11 @@
         let loader = document.createElement("div");
         loader.className = "textgrab-loader";
         loader.style.position = "absolute";
-        loader.style.setProperty("z-index", "2147483637", "important");
-        loader.style.left = left + "px";
-        loader.style.top = top + "px";
-        document.body.appendChild(loader);
+        // loader.style.setProperty("z-index", "2147483637", "important");
+        // loader.style.left = left + "px";
+        // loader.style.top = top + "px";
+        // document.body.appendChild(loader);
+        this.target.parentElement.insertBefore(loader, this.target.nextElementSibling);
         this.spinner = loader;
       }
     }
@@ -104,10 +106,10 @@
         clearBtn.className = "textgrab-clear-btn";
         clearBtn.style.position = "absolute";
         clearBtn.style.setProperty("z-index", "2147483637", "important");
-        clearBtn.style.left = left + "px";
-        clearBtn.style.top = top + "px";
-        clearBtn.style.width = "4em"
-        clearBtn.style.height = "2em"
+        // clearBtn.style.left = left + "px";
+        // clearBtn.style.top = top + "px";
+        // clearBtn.style.width = "4em"
+        // clearBtn.style.height = "2em"
         clearBtn.innerHTML = "Clear"
 
         // Add clear behaviour
@@ -115,12 +117,13 @@
           this.clear();
           this.toggleClearButton(false);
         })
-        document.body.appendChild(clearBtn);
+        // document.body.appendChild(clearBtn);
+        this.target.parentElement.insertBefore(clearBtn, this.target.nextElementSibling);
         this.clearBtn = clearBtn;
       }
       // Disable the button
       else {
-        document.body.removeChild(this.clearBtn)
+        this.target.parentElement.removeChild(this.clearBtn)
         this.clearBtn = null;
       }
     }
