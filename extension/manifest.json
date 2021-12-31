@@ -32,5 +32,5 @@
       "description": "Put your cursor on an image/video surface and use this shortcut to enable copying text on it"
     }
   },
-  "permissions": ["https://*/*", "http://*/*", "activeTab", "declarativeContent", "tabs", "storage"]
+  "permissions": ["https://textgrab.io/process", "activeTab", "declarativeContent", "tabs"]
 }
