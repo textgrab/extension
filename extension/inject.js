@@ -93,6 +93,37 @@
         this.spinner = loader;
       }
     }
+
+    toggleClearButton(show) {
+      if (show) {
+        let { left, top } = this.getTargetOffsets();
+        left += 10;
+        top += 10;
+        // Create button element
+        let clearBtn = document.createElement("button");
+        clearBtn.className = "textgrab-clear-btn";
+        clearBtn.style.position = "absolute";
+        clearBtn.style.setProperty("z-index", "2147483637", "important");
+        clearBtn.style.left = left + "px";
+        clearBtn.style.top = top + "px";
+        clearBtn.style.width = "4em"
+        clearBtn.style.height = "2em"
+        clearBtn.innerHTML = "Clear"
+
+        // Add clear behaviour
+        clearBtn.addEventListener("mousedown", () => {
+          this.clear();
+          this.toggleClearButton(false);
+        })
+        document.body.appendChild(clearBtn);
+        this.clearBtn = clearBtn;
+      }
+      // Disable the button
+      else {
+        document.body.removeChild(this.clearBtn)
+        this.clearBtn = null;
+      }
+    }
   }
 
   class Video {
@@ -310,19 +341,21 @@
       });
       // we clear the text overlay after x amount of seconds
       // and until user mouse is not down
-      setTimeout(() => {
-        const clear = () => {
-          setTimeout(() => {
-            renderer.clear();
-            window.removeEventListener("mouseup", clear);
-          }, 1500);
-        };
-        if (mousedown) {
-          window.addEventListener("mouseup", clear);
-        } else {
-          clear();
-        }
-      }, REFRESH_RATE);
+    //   setTimeout(() => {
+    //     const clear = () => {
+    //       setTimeout(() => {
+    //         renderer.clear();
+    //         window.removeEventListener("mouseup", clear);
+    //       }, 1500);
+    //     };
+    //     if (mousedown) {
+    //       window.addEventListener("mouseup", clear);
+    //     } else {
+    //       clear();
+    //     }
+    //   }, REFRESH_RATE);
+    renderer.toggleClearButton(true);
+
     })();
   }
 }
