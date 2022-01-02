@@ -104,6 +104,7 @@
         clearBtn.className = "textgrab-clear-btn";
         clearBtn.style.position = "absolute";
         clearBtn.style.setProperty("z-index", "2147483637", "important");
+        clearBtn.style.borderRadius = "10px"
         clearBtn.style.left = left + "px";
         clearBtn.style.top = top + "px";
         clearBtn.style.width = "4em"
@@ -216,24 +217,25 @@
       // Unique ID for the className.
       var MOUSE_VISITED_CLASSNAME = "crx_mouse_visited";
 
-      // window.addEventListener("click", handleClick, false);
+      window.addEventListener("click", handleGlobalClick);
+
       let elements = document.querySelectorAll("img,video");
       elements.forEach((el) => {
         el.classList.add(MOUSE_VISITED_CLASSNAME);
-        el.addEventListener("click", handleClick);
+        el.addEventListener("click", handleElementClick);
       });
 
-      function handleClick(e) {
-        // window.removeEventListener("click", handleClick);
 
-        e.srcElement.removeEventListener("click", handleClick);
-        elements.forEach((el) => {
-          el.classList.remove(MOUSE_VISITED_CLASSNAME);
-          el.removeEventListener("click", handleClick);
-        });
+      /**
+       * This function is called when an element with the class name 
+       * MOUSE_VISITED_CLASSNAME is clicked. These should only be image or video
+       * elements.
+       * @param {Event} e
+       */
+      function handleElementClick(e) {
+        cancelSelection()
 
-        // let srcElement = document.elementFromPoint(e.x, e.y);
-        let res = getTargetHelper(e.srcElement, ghostElement);
+        let res = getTargetHelper(e.target, ghostElement);
         e.preventDefault();
         e.stopPropagation();
         if (res == null) {
@@ -242,6 +244,44 @@
           resolve(res);
         }
         return false;
+      }
+
+      /**
+       * This function is called when the window is clicked anywhere. If the click
+       * occurred on an element with the class name MOUSE_VISITED_CLASSNAME, then
+       * we should ignore it since it will be handled by the handleElementClick
+       * @param {Event} e 
+       * @returns 
+       */
+      function handleGlobalClick(e) {
+        let res = getTargetHelper(e.target, ghostElement);
+        if (!res) {
+          cancelSelection();
+          reject("Selected element is not supported");
+          return false;
+        } 
+        if (res.getHTMLElement().classList.contains(MOUSE_VISITED_CLASSNAME)) {
+          // will be handled by handleElementClick
+          return false;
+        }
+
+        // otherwise, we can resolve the promise
+        // this is usually in the case of HTML elements
+        // placed out of the document, e.g. shadow DOM
+        // the outline will not show for these elements,
+        // but it will still work
+        e.preventDefault();
+        e.stopPropagation();
+        resolve(res);
+        return false;
+      }
+
+      function cancelSelection() {
+        elements.forEach((el) => {
+          el.classList.remove(MOUSE_VISITED_CLASSNAME);
+          el.removeEventListener("click", handleElementClick);
+        });
+        window.removeEventListener("click", handleGlobalClick);
       }
     });
   }
