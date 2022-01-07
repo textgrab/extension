@@ -10,10 +10,14 @@
   }
 
   class Renderer {
-    constructor(target) {
+    constructor(target, canvas) {
       this.renderedRects = [];
       this.spinner = null;
       this.target = target;
+      this.font = "arial";
+
+      // used for measuring text (cannot use the same as video canvas)
+      this.ghostCanvas = canvas;
     }
 
     getTargetOffsets() {
@@ -28,6 +32,17 @@
 
       return { left: leftOffset, top: topOffset };
     }
+
+    getTextWidth(text, size) {
+      // Computes the width of the text in pixels
+      var context = this.ghostCanvas.getContext("2d");
+      if (context == null) {
+        throw new Error("Could not get context for canvas");
+      }
+      context.font = size + "px " + this.font;
+      var metrics = context.measureText(text);
+      return metrics.width;
+  };
 
     /**
      * Inserts HTML elements into the DOM for each Rect
@@ -44,9 +59,16 @@
         let rect = rects[i];
         if (!rect.value) continue;
 
+        console.log(rect.value, this.getTextWidth(rect.value, rect.height), rect.width)
+        let textWidth = this.getTextWidth(rect.value, rect.height);
+
+        // letter spacing also adds a space at the end of text
+        // thus we need rect.value.length instead of rect.value.length - 1
+        let letterSpacing = (rect.width - textWidth) / (rect.value.length);
+
         let text = document.createElement("div");
         text.style.position = "absolute";
-        text.innerHTML = rect.value;
+        text.innerText = rect.value;
         text.style.left = rect.x + leftOffset + "px";
         text.style.top = rect.y + topOffset + "px";
         text.style.textAlign = "center";
@@ -57,8 +79,9 @@
         text.style.setProperty("z-index", "2147483637", "important");
         text.style.userSelect = "text";
         text.style.fontSize = `${rect.height}px`;
+        text.style.font = this.font;
+        text.style.letterSpacing = `${letterSpacing}px`;
         document.body.appendChild(text);
-        // text.style.transform = `scale(${rect.width / text.offsetWidth}, 1)`;
         this.renderedRects.push(text);
       }
     }
@@ -193,7 +216,7 @@
   async function getProcessedBoundingRects(data) {
     // to remove the 22 characters before the image data
     data = data.substr(22);
-    let res = await fetch("https://api.textgrab.io/process", {
+    let res = await fetch("http://localhost:8000/process", {
       method: "POST",
       headers: {
         Accept: "application/json",
@@ -325,6 +348,11 @@
     ghost.style.display = "none";
     document.body.appendChild(ghost);
 
+    var ghostForMeasuringText = document.createElement("canvas");
+    ghostForMeasuringText.style.position = "absolute";
+    ghostForMeasuringText.style.display = "none";
+    document.body.appendChild(ghostForMeasuringText);
+
     (async function () {
       // get the video / image target if it exists
       let target = await getTarget(ghost);
@@ -332,7 +360,7 @@
       if (target == null) return;
 
       // set up the renderer on the target element
-      let renderer = new Renderer(target.getHTMLElement());
+      let renderer = new Renderer(target.getHTMLElement(), ghostForMeasuringText);
       renderer.showSpinner(true);
 
       let response, image;

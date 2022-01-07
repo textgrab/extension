@@ -59,9 +59,7 @@ def gcp_ocr(image_content):
                         line_bounding_box["height"],
                         word_box.vertices[3].y - word_box.vertices[0].y,
                     )
-                    line_bounding_box["width"] += (
-                        word_box.vertices[1].x - word_box.vertices[0].x
-                    )
+                    line_bounding_box["width"] = word_box.vertices[1].x - line_bounding_box["x"]
 
                     for symbol in word.symbols:
                         line += symbol.text
