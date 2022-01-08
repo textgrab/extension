@@ -15,7 +15,7 @@ variable "eb_app_description" {
 }
 
 variable "eb_solution_stack_name" {
-    default = "64bit Amazon Linux 2 v3.3.6 running Python 3.8"
+    default = "64bit Amazon Linux 2 v3.3.9 running Python 3.8"
 }
 
 variable "eb_instance_port" {
