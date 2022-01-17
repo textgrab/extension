@@ -59,7 +59,6 @@
         let rect = rects[i];
         if (!rect.value) continue;
 
-        console.log(rect.value, this.getTextWidth(rect.value, rect.height), rect.width)
         let textWidth = this.getTextWidth(rect.value, rect.height);
 
         // letter spacing also adds a space at the end of text
@@ -71,7 +70,6 @@
         text.innerText = rect.value;
         text.style.left = rect.x + leftOffset + "px";
         text.style.top = rect.y + topOffset + "px";
-        text.style.textAlign = "center";
         text.style.color = "transparent";
 
         text.style.backgroundColor = "rgba(72, 167, 250, 0.221)";
@@ -277,16 +275,28 @@
        * @returns 
        */
       function handleGlobalClick(e) {
-        let res = getTargetHelper(e.target, ghostElement);
+        let res;
+
+        let elements = document.elementsFromPoint(e.x, e.y)
+        for (const element of elements) {
+          res = getTargetHelper(element, ghostElement);
+          if (res != null) {
+            break;
+          }
+        }
+        console.log(res);
+        // let res = getTargetHelper(e.target, ghostElement);
         if (!res) {
           cancelSelection();
           reject("Selected element is not supported");
           return false;
         } 
-        if (res.getHTMLElement().classList.contains(MOUSE_VISITED_CLASSNAME)) {
-          // will be handled by handleElementClick
-          return false;
-        }
+        // if (res.getHTMLElement().classList.contains(MOUSE_VISITED_CLASSNAME)) {
+        //   // will be handled by handleElementClick
+        //   return false;
+        // }
+        
+        cancelSelection();
 
         // otherwise, we can resolve the promise
         // this is usually in the case of HTML elements
@@ -344,11 +354,13 @@
   function main() {
     // set up ghost canvas to put the image (we need this in order to get base64 string)
     var ghost = document.createElement("canvas");
+    ghost.id = "textgrab-ghost-2";
     ghost.style.position = "absolute";
     ghost.style.display = "none";
     document.body.appendChild(ghost);
 
     var ghostForMeasuringText = document.createElement("canvas");
+    ghostForMeasuringText.id = "textgrab-ghost-2";
     ghostForMeasuringText.style.position = "absolute";
     ghostForMeasuringText.style.display = "none";
     document.body.appendChild(ghostForMeasuringText);
