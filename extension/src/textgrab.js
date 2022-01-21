@@ -10,6 +10,10 @@
   }
 
   class Renderer {
+    /**
+     * @param {HTMLElement} target the element to display the text on
+     * @param {HTMLCanvasElement} canvas the canvas used to measure the text
+     */
     constructor(target, canvas) {
       this.renderedRects = [];
       this.spinner = null;
@@ -20,9 +24,12 @@
       this.ghostCanvas = canvas;
     }
 
+    /**
+     * Calculate the offset of the target element in order
+     * to position the text overlay at the correct position
+     * @returns {Object} left and top offsets of the target element
+     */
     getTargetOffsets() {
-      // calculate offsets of target to position text at proper position
-      // and account for scroll
       let leftOffset =
         this.target.getBoundingClientRect().left +
         (window.pageXOffset || document.documentElement.scrollLeft);
@@ -33,6 +40,12 @@
       return { left: leftOffset, top: topOffset };
     }
 
+    /**
+     * Computes the width of the text in pixels
+     * @param {String} text the content of text to measure
+     * @param {Number} size the font size in pixels of the text
+     * @returns the width of the text in pixels (can be float)
+     */
     getTextWidth(text, size) {
       // Computes the width of the text in pixels
       var context = this.ghostCanvas.getContext("2d");
@@ -92,10 +105,15 @@
         document.body.removeChild(val);
       });
       this.renderedRects = [];
-      this.showSpinner(false);
+      this.toggleSpinner(false);
+      this.toggleClearButton(false);
     }
 
-    showSpinner(show) {
+    /**
+     * Shows or hides the spinner on the element
+     * @param {Boolean} show whether to show or hide the spinner
+     */
+    toggleSpinner(show) {
       if (this.spinner != null) {
         document.body.removeChild(this.spinner);
         this.spinner = null;
@@ -105,7 +123,7 @@
         left += 10;
         top += 10;
         let loader = document.createElement("div");
-        loader.className = "textgrab-loader";
+        loader.id = "textgrab-loader";
         loader.style.position = "absolute";
         loader.style.setProperty("z-index", "2147483637", "important");
         loader.style.left = left + "px";
@@ -115,6 +133,10 @@
       }
     }
 
+    /**
+     * Shows or hides the clear button
+     * @param {Boolean} show whether to show or hide the clear button
+     */
     toggleClearButton(show) {
       if (show) {
         let { left, top } = this.getTargetOffsets();
@@ -122,18 +144,13 @@
         top += 10;
         // Create button element
         let clearBtn = document.createElement("button");
-        clearBtn.className = "textgrab-clear-btn";
-        clearBtn.style.position = "absolute";
-        clearBtn.style.setProperty("z-index", "2147483637", "important");
-        clearBtn.style.borderRadius = "10px"
+        clearBtn.id = "textgrab-clear-btn";
         clearBtn.style.left = left + "px";
         clearBtn.style.top = top + "px";
-        clearBtn.style.width = "4em"
-        clearBtn.style.height = "2em"
-        clearBtn.innerHTML = "Clear"
+        clearBtn.innerText = "Clear"
 
         // Add clear behaviour
-        clearBtn.addEventListener("mousedown", () => {
+        clearBtn.addEventListener("click", () => {
           this.clear();
           this.toggleClearButton(false);
         })
@@ -142,8 +159,10 @@
       }
       // Disable the button
       else {
-        document.body.removeChild(this.clearBtn)
-        this.clearBtn = null;
+        if (this.clearBtn != null) {
+          document.body.removeChild(this.clearBtn)
+          this.clearBtn = null;
+        }
       }
     }
   }
@@ -180,32 +199,33 @@
 
   class Image {
     constructor(htmlElement, ghostCanvas) {
-      this.image = htmlElement;
-      this.ghostCanvas = ghostCanvas;
+        this.image = htmlElement;
+        this.ghostCanvas = ghostCanvas;
     }
     async getBase64Data() {
-      // to allow for manipulation of images with CORS restrictions
-      this.image.crossOrigin = "anonymous";
-      let frame = await new Promise((resolve, reject) => {
+        // to allow for manipulation of images with CORS restrictions
+        this.image.crossOrigin = "anonymous";
+        let frame = await new Promise((resolve, reject) => {
         this.image.onload = () => {
-          resolve(createImageBitmap(this.image));
+            resolve(createImageBitmap(this.image));
         };
         this.image.onerror = () => reject("Image error");
-      });
-      var context = this.ghostCanvas.getContext("bitmaprenderer");
-      const [frameWidth, frameHeight] = [frame.width, frame.height];
-      context.transferFromImageBitmap(frame);
-      return {
+        });
+        var context = this.ghostCanvas.getContext("bitmaprenderer");
+        const [frameWidth, frameHeight] = [frame.width, frame.height];
+        context.transferFromImageBitmap(frame);
+        return {
         data: this.ghostCanvas.toDataURL(),
         width: frameWidth,
         height: frameHeight,
-      };
+        };
     }
 
     getHTMLElement() {
-      return this.image;
+        return this.image;
     }
   }
+
 
   /**
    * @param {str} data Image data to send to the API
@@ -246,7 +266,18 @@
         el.addEventListener("click", handleElementClick);
       });
 
+      document.addEventListener('keydown', handleKeyPress);
 
+      /**
+       * We need to cancel selection when ESC is pressed
+       * @param {Event} e 
+       */
+      function handleKeyPress(e) {
+        if (e.key == "Escape" || e.key=='Esc' || e.keyCode == 27) {
+          cancelSelection();
+          resolve(null);
+        }
+      }
       /**
        * This function is called when an element with the class name 
        * MOUSE_VISITED_CLASSNAME is clicked. These should only be image or video
@@ -254,13 +285,13 @@
        * @param {Event} e
        */
       function handleElementClick(e) {
-        cancelSelection()
-
-        let res = getTargetHelper(e.target, ghostElement);
         e.preventDefault();
         e.stopPropagation();
+        cancelSelection();
+        let res = getTargetHelper(e.target, ghostElement);
+
         if (res == null) {
-          reject("Selected element is not supported");
+          reject("Please select an image or video element");
         } else {
           resolve(res);
         }
@@ -268,53 +299,45 @@
       }
 
       /**
-       * This function is called when the window is clicked anywhere. If the click
-       * occurred on an element with the class name MOUSE_VISITED_CLASSNAME, then
-       * we should ignore it since it will be handled by the handleElementClick
+       * This function is called when the window is clicked anywhere and
+       * serves as the fallback for when the click
+       * on an element without class name MOUSE_VISITED_CLASSNAME, 
+       * is clicked.
        * @param {Event} e 
        * @returns 
        */
       function handleGlobalClick(e) {
-        let res;
-
-        let elements = document.elementsFromPoint(e.x, e.y)
-        for (const element of elements) {
-          res = getTargetHelper(element, ghostElement);
-          if (res != null) {
-            break;
-          }
-        }
-        console.log(res);
-        // let res = getTargetHelper(e.target, ghostElement);
-        if (!res) {
-          cancelSelection();
-          reject("Selected element is not supported");
-          return false;
-        } 
-        // if (res.getHTMLElement().classList.contains(MOUSE_VISITED_CLASSNAME)) {
-        //   // will be handled by handleElementClick
-        //   return false;
-        // }
-        
+        e.preventDefault();
         cancelSelection();
 
+        let element = document.elementFromPoint(e.x, e.y)
+
+        let res = getTargetHelper(element, ghostElement);
+        if (!res) {
+          reject("Please select an image or video element");
+          return false;
+        } 
+        
         // otherwise, we can resolve the promise
         // this is usually in the case of HTML elements
         // placed out of the document, e.g. shadow DOM
         // the outline will not show for these elements,
         // but it will still work
-        e.preventDefault();
-        e.stopPropagation();
         resolve(res);
         return false;
       }
 
+      /**
+       * Cancels the selection of all video/image elements
+       * and removes the event listeners
+       */
       function cancelSelection() {
         elements.forEach((el) => {
           el.classList.remove(MOUSE_VISITED_CLASSNAME);
           el.removeEventListener("click", handleElementClick);
         });
         window.removeEventListener("click", handleGlobalClick);
+        document.removeEventListener("keypress", handleKeyPress);
       }
     });
   }
@@ -323,6 +346,7 @@
    * Recursive DFS search for any valid node that is a video or image element
    * @param {HTMLElement} root
    * @param {HTMLElement} ghostElement (used only to create {Image} or {Video} instances)
+   * TODO: Narrow search by checking if the user's click is within the bounds of root 
    * @returns {Video | Image | null}
    */
   function getTargetHelper(root, ghostElement) {
@@ -351,10 +375,33 @@
     }
   }
 
+  /**
+   * 
+   * @param {String} message to display in toast
+   * @param {String} type one of error, info, success. Default is info
+   */
+  function showToast(message, type = "info") {
+    var toast = document.createElement("div");
+    toast.id = "textgrab-snackbar";
+    toast.className = `tg-show tg-${type}`;
+    toast.innerText = message;
+    document.body.appendChild(toast);
+
+    setTimeout(
+      function() { 
+        toast.className = toast.className.replace("tg-show", ""); 
+        setTimeout(function() {
+          document.body.removeChild(toast);
+        },1000);
+      }, 3000
+    );
+  }
+
+
   function main() {
     // set up ghost canvas to put the image (we need this in order to get base64 string)
     var ghost = document.createElement("canvas");
-    ghost.id = "textgrab-ghost-2";
+    ghost.id = "textgrab-ghost-1";
     ghost.style.position = "absolute";
     ghost.style.display = "none";
     document.body.appendChild(ghost);
@@ -367,24 +414,39 @@
 
     (async function () {
       // get the video / image target if it exists
-      let target = await getTarget(ghost);
-      console.log("Target", target);
-      if (target == null) return;
+      let target;
+      try {
+        target = await getTarget(ghost);
+        console.log("Target", target);
+        if (target == null) return;
+      } catch (e) {
+        showToast(e, "error");
+        return;
+      }
 
       // set up the renderer on the target element
       let renderer = new Renderer(target.getHTMLElement(), ghostForMeasuringText);
-      renderer.showSpinner(true);
+      renderer.toggleSpinner(true);
 
       let response, image;
 
+      // get the image / video data from the target
       try {
         image = await target.getBase64Data();
+      } catch(e) {
+        console.error(e);
+        renderer.clear();
+        showToast("Failed to get image data. This usually happens when the host doesn't allow manipulation of image content.", "error");
+        return;
+      }
 
-        // Hit API and update extension
+      // Hit the API with the image data to get rects
+      try {
         response = await getProcessedBoundingRects(image.data);
       } catch (e) {
         console.error(e);
         renderer.clear();
+        showToast("Oops! Something went wrong when reaching the server. Please try again later.", "error");
         return;
       }
 
@@ -409,34 +471,9 @@
 
       // Show the results via a text overlay to the user
       renderer.showRects(selectedRects);
-
-      const REFRESH_RATE = 5000;
-
-      let mousedown = false;
-      window.addEventListener("mousedown", () => {
-        mousedown = true;
-      });
-      window.addEventListener("mouseup", () => {
-        mousedown = false;
-      });
-      // we clear the text overlay after x amount of seconds
-      // and until user mouse is not down
-    //   setTimeout(() => {
-    //     const clear = () => {
-    //       setTimeout(() => {
-    //         renderer.clear();
-    //         window.removeEventListener("mouseup", clear);
-    //       }, 1500);
-    //     };
-    //     if (mousedown) {
-    //       window.addEventListener("mouseup", clear);
-    //     } else {
-    //       clear();
-    //     }
-    //   }, REFRESH_RATE);
-    renderer.toggleClearButton(true);
-
+      renderer.toggleClearButton(true);
     })();
   }
 }
+
 main();

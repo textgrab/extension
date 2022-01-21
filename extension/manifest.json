@@ -1,7 +1,7 @@
 {
   "name": "TextGrab",
   "version": "0.0.1",
-  "manifest_version": 2,
+  "manifest_version": 3,
   "description": "Copy text from videos, images and live meetings! Grabbing text has never been easier",
   "icons": {
     "16": "icons/logo16.png",
@@ -9,17 +9,20 @@
     "48": "icons/logo48.png",
     "128": "icons/logo128.png"
   },
+  "options_ui": {
+    "page": "src/options/options.html",
+    "open_in_tab": false
+  },
   "content_scripts": [
     {
       "matches": ["http://*/*", "https://*/*"],
-      "css": ["src/hover_highlight/hover_highlight.css"]
+      "css": ["src/css/hover_highlight.css", "src/css/toast.css", "src/css/ui.css"]
     }
   ],
   "background": {
-    "scripts": ["background.js"],
-    "persistent": true
+    "service_worker": "src/workers/content-worker.js"
   },
-  "browser_action": {
+  "action": {
     "default_title": "TextGrab",
     "default_icon": "icons/logo48.png",
     "default_popup": "src/browser_action/browser_action.html"
@@ -29,8 +32,8 @@
       "suggested_key": {
         "default": "Alt+C"
       },
-      "description": "Put your cursor on an image/video surface and use this shortcut to enable copying text on it"
+      "description": "Use this shortcut to enable selection of text from videos, images and live meetings. Click to confirm selection."
     }
   },
-  "permissions": ["activeTab"]
+  "permissions": ["activeTab", "scripting"]
 }

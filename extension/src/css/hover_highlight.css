@@ -9,7 +9,7 @@
   cursor: pointer;
 }
 
-.textgrab-loader {
+#textgrab-loader {
   border: 5px solid #f3f3f3; /* Light grey */
   border-radius: 50%;
   width: 20px;

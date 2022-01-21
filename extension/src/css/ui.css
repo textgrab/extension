@@ -1,0 +1,19 @@
+#textgrab-clear-btn {
+  align-content: center;
+  min-width: 4em;
+  min-height: 2em;
+  border-radius: 25px;
+  background-color: #2496e7;
+  font-family: "Dosis", sans-serif;
+  font-weight: 500;
+  font-size: 15px;
+  padding: 2px;
+  color: #fff;
+  border: none;
+  position: absolute;
+  z-index: 2147483637 !important;
+}
+#textgrab-clear-btn:hover {
+  cursor: pointer;
+  background-color: #0a81d6;
+}
