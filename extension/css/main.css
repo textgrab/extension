@@ -138,3 +138,27 @@ img {
   font-weight: 700;
   cursor: pointer;
 }
+
+.centered {
+  text-align: center;
+  color: white;
+}
+/* File drop area */
+
+#drop-region {
+  background-color: rgb(83, 78, 78);
+  border-radius: 20px;
+  box-shadow: 0 0 35px rgba(0, 0, 0, 0.05);
+  width: 90%;
+  color: white;
+  margin: auto;
+  /* padding: 30px 30px; */
+  padding: 20px 0px;
+  text-align: center;
+  cursor: pointer;
+  transition: 0.3s;
+}
+#drop-region:hover {
+  box-shadow: 0 0 45px rgba(0, 0, 0, 0.1);
+  background-color: rgb(114, 108, 108);
+}

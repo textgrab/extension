@@ -61,7 +61,7 @@ def process():
 
     # Get OCR text using GCP
     paragraphs, lines = gcp_ocr(imageData)
-    full_text = " . ".join(paragraphs)
+    full_text = "\n".join(paragraphs)
     # Run Named Entity Recognition
     # entities = ner_spacy(full_text)
 
