@@ -16,7 +16,7 @@
   "content_scripts": [
     {
       "matches": ["http://*/*", "https://*/*"],
-      "css": ["src/css/hover_highlight.css", "src/css/toast.css", "src/css/ui.css"]
+      "css": ["css/textgrab.css"]
     }
   ],
   "background": {

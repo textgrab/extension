@@ -17,6 +17,7 @@
     constructor(target, canvas) {
       this.renderedRects = [];
       this.spinner = null;
+      this.menu = null;
       this.target = target;
       this.font = "arial";
 
@@ -55,7 +56,7 @@
       context.font = size + "px " + this.font;
       var metrics = context.measureText(text);
       return metrics.width;
-  };
+    }
 
     /**
      * Inserts HTML elements into the DOM for each Rect
@@ -76,7 +77,7 @@
 
         // letter spacing also adds a space at the end of text
         // thus we need rect.value.length instead of rect.value.length - 1
-        let letterSpacing = (rect.width - textWidth) / (rect.value.length);
+        let letterSpacing = (rect.width - textWidth) / rect.value.length;
 
         let text = document.createElement("div");
         text.style.position = "absolute";
@@ -106,7 +107,7 @@
       });
       this.renderedRects = [];
       this.toggleSpinner(false);
-      this.toggleClearButton(false);
+      this.toggleMenu(false);
     }
 
     /**
@@ -137,32 +138,89 @@
      * Shows or hides the clear button
      * @param {Boolean} show whether to show or hide the clear button
      */
-    toggleClearButton(show) {
+    toggleMenu(show, onCopyAll = () => {}) {
+      if (this.menu != null) {
+        document.body.removeChild(this.menu);
+        this.menu = null;
+      }
       if (show) {
         let { left, top } = this.getTargetOffsets();
         left += 10;
         top += 10;
-        // Create button element
+
+        // create the menu
+        let menu = document.createElement("div");
+        menu.id = "textgrab-menu";
+        menu.style.left = left + "px";
+        menu.style.top = top + "px";
+
+        // Create clear button
         let clearBtn = document.createElement("button");
         clearBtn.id = "textgrab-clear-btn";
-        clearBtn.style.left = left + "px";
-        clearBtn.style.top = top + "px";
-        clearBtn.innerText = "Clear"
+        clearBtn.className = "textgrab-btn-1";
+        clearBtn.innerText = "Clear";
 
-        // Add clear behaviour
+        // Create copy all button
+        let copyAll = document.createElement("button");
+        copyAll.id = "textgrab-copy-btn";
+        copyAll.className = "textgrab-btn-1";
+        copyAll.innerText = "Copy All";
+        copyAll.style.marginTop = "5px";
+
+        // Add button listeners
         clearBtn.addEventListener("click", () => {
           this.clear();
-          this.toggleClearButton(false);
-        })
-        document.body.appendChild(clearBtn);
-        this.clearBtn = clearBtn;
+          this.toggleMenu(false);
+        });
+
+        copyAll.addEventListener("click", onCopyAll);
+
+        menu.appendChild(clearBtn);
+        menu.appendChild(copyAll);
+        document.body.appendChild(menu);
+        this.menu = menu;
+        this.dragElement(menu);
       }
-      // Disable the button
-      else {
-        if (this.clearBtn != null) {
-          document.body.removeChild(this.clearBtn)
-          this.clearBtn = null;
-        }
+    }
+
+    dragElement(elmnt) {
+      /* https://www.w3schools.com/howto/howto_js_draggable.asp */
+
+      var pos1X = 0,
+        pos1Y = 0,
+        pos2X = 0,
+        pos2Y = 0;
+
+      elmnt.onmousedown = dragMouseDown;
+
+      function dragMouseDown(e) {
+        e = e || window.event;
+        e.preventDefault();
+        // get the mouse cursor position at startup:
+        pos1X = e.clientX;
+        pos1Y = e.clientY;
+        document.onmouseup = closeDragElement;
+        // call a function whenever the cursor moves:
+        document.onmousemove = elementDrag;
+      }
+
+      function elementDrag(e) {
+        e = e || window.event;
+        e.preventDefault();
+        // calculate the new cursor position:
+        pos2X = pos1X - e.clientX;
+        pos2Y = pos1Y - e.clientY;
+        pos1X = e.clientX;
+        pos1Y = e.clientY;
+        // set the element's new position:
+        elmnt.style.top = elmnt.offsetTop - pos2Y + "px";
+        elmnt.style.left = elmnt.offsetLeft - pos2X + "px";
+      }
+
+      function closeDragElement() {
+        // stop moving when mouse button is released:
+        document.onmouseup = null;
+        document.onmousemove = null;
       }
     }
   }
@@ -199,33 +257,32 @@
 
   class Image {
     constructor(htmlElement, ghostCanvas) {
-        this.image = htmlElement;
-        this.ghostCanvas = ghostCanvas;
+      this.image = htmlElement;
+      this.ghostCanvas = ghostCanvas;
     }
     async getBase64Data() {
-        // to allow for manipulation of images with CORS restrictions
-        this.image.crossOrigin = "anonymous";
-        let frame = await new Promise((resolve, reject) => {
+      // to allow for manipulation of images with CORS restrictions
+      this.image.crossOrigin = "anonymous";
+      let frame = await new Promise((resolve, reject) => {
         this.image.onload = () => {
-            resolve(createImageBitmap(this.image));
+          resolve(createImageBitmap(this.image));
         };
         this.image.onerror = () => reject("Image error");
-        });
-        var context = this.ghostCanvas.getContext("bitmaprenderer");
-        const [frameWidth, frameHeight] = [frame.width, frame.height];
-        context.transferFromImageBitmap(frame);
-        return {
+      });
+      var context = this.ghostCanvas.getContext("bitmaprenderer");
+      const [frameWidth, frameHeight] = [frame.width, frame.height];
+      context.transferFromImageBitmap(frame);
+      return {
         data: this.ghostCanvas.toDataURL(),
         width: frameWidth,
         height: frameHeight,
-        };
+      };
     }
 
     getHTMLElement() {
-        return this.image;
+      return this.image;
     }
   }
-
 
   /**
    * @param {str} data Image data to send to the API
@@ -266,20 +323,20 @@
         el.addEventListener("click", handleElementClick);
       });
 
-      document.addEventListener('keydown', handleKeyPress);
+      document.addEventListener("keydown", handleKeyPress);
 
       /**
        * We need to cancel selection when ESC is pressed
-       * @param {Event} e 
+       * @param {Event} e
        */
       function handleKeyPress(e) {
-        if (e.key == "Escape" || e.key=='Esc' || e.keyCode == 27) {
+        if (e.key == "Escape" || e.key == "Esc" || e.keyCode == 27) {
           cancelSelection();
           resolve(null);
         }
       }
       /**
-       * This function is called when an element with the class name 
+       * This function is called when an element with the class name
        * MOUSE_VISITED_CLASSNAME is clicked. These should only be image or video
        * elements.
        * @param {Event} e
@@ -301,23 +358,23 @@
       /**
        * This function is called when the window is clicked anywhere and
        * serves as the fallback for when the click
-       * on an element without class name MOUSE_VISITED_CLASSNAME, 
+       * on an element without class name MOUSE_VISITED_CLASSNAME,
        * is clicked.
-       * @param {Event} e 
-       * @returns 
+       * @param {Event} e
+       * @returns
        */
       function handleGlobalClick(e) {
         e.preventDefault();
         cancelSelection();
 
-        let element = document.elementFromPoint(e.x, e.y)
+        let element = document.elementFromPoint(e.x, e.y);
 
         let res = getTargetHelper(element, ghostElement);
         if (!res) {
           reject("Please select an image or video element");
           return false;
-        } 
-        
+        }
+
         // otherwise, we can resolve the promise
         // this is usually in the case of HTML elements
         // placed out of the document, e.g. shadow DOM
@@ -346,7 +403,7 @@
    * Recursive DFS search for any valid node that is a video or image element
    * @param {HTMLElement} root
    * @param {HTMLElement} ghostElement (used only to create {Image} or {Video} instances)
-   * TODO: Narrow search by checking if the user's click is within the bounds of root 
+   * TODO: Narrow search by checking if the user's click is within the bounds of root
    * @returns {Video | Image | null}
    */
   function getTargetHelper(root, ghostElement) {
@@ -376,7 +433,7 @@
   }
 
   /**
-   * 
+   *
    * @param {String} message to display in toast
    * @param {String} type one of error, info, success. Default is info
    */
@@ -387,16 +444,13 @@
     toast.innerText = message;
     document.body.appendChild(toast);
 
-    setTimeout(
-      function() { 
-        toast.className = toast.className.replace("tg-show", ""); 
-        setTimeout(function() {
-          document.body.removeChild(toast);
-        },1000);
-      }, 3000
-    );
+    setTimeout(function () {
+      toast.className = toast.className.replace("tg-show", "");
+      setTimeout(function () {
+        document.body.removeChild(toast);
+      }, 1000);
+    }, 3000);
   }
-
 
   function main() {
     // set up ghost canvas to put the image (we need this in order to get base64 string)
@@ -425,7 +479,10 @@
       }
 
       // set up the renderer on the target element
-      let renderer = new Renderer(target.getHTMLElement(), ghostForMeasuringText);
+      let renderer = new Renderer(
+        target.getHTMLElement(),
+        ghostForMeasuringText
+      );
       renderer.toggleSpinner(true);
 
       let response, image;
@@ -433,10 +490,13 @@
       // get the image / video data from the target
       try {
         image = await target.getBase64Data();
-      } catch(e) {
+      } catch (e) {
         console.error(e);
         renderer.clear();
-        showToast("Failed to get image data. This usually happens when the host doesn't allow manipulation of image content.", "error");
+        showToast(
+          "Failed to get image data. This usually happens when the host doesn't allow manipulation of image content.",
+          "error"
+        );
         return;
       }
 
@@ -446,7 +506,10 @@
       } catch (e) {
         console.error(e);
         renderer.clear();
-        showToast("Oops! Something went wrong when reaching the server. Please try again later.", "error");
+        showToast(
+          "Oops! Something went wrong when reaching the server. Please try again later.",
+          "error"
+        );
         return;
       }
 
@@ -471,7 +534,17 @@
 
       // Show the results via a text overlay to the user
       renderer.showRects(selectedRects);
-      renderer.toggleClearButton(true);
+      renderer.toggleMenu(
+        true,
+        (onCopyAll = async () => {
+          try {
+            await navigator.clipboard.writeText(response.full_text);
+            showToast("TextGrabbed successfully!", "success");
+          } catch (e) {
+            showToast("Failed to copy text to clipboard", "error");
+          }
+        })
+      );
     })();
   }
 }

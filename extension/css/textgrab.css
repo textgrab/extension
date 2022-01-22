@@ -1,3 +1,71 @@
+.crx_mouse_visited:hover {
+  outline: 0.5em dashed #4ab3ff !important;
+  outline-offset: -10px !important;
+  /* filter: sepia(80%)!important; */
+  background-color: rgba(0, 0, 0, 0.6) !important;
+  transition: all 0.2s ease-in-out;
+  /* filter: saturate(70%) !important; */
+  filter: invert(25%) !important;
+  cursor: pointer;
+}
+
+#textgrab-loader {
+  border: 5px solid #f3f3f3; /* Light grey */
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  animation: spin 1.5s linear infinite, colorAnim 1.5s linear infinite alternate;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes colorAnim {
+  0% {
+    /* border-left: 5px solid #4ab3ff; /* Blue */
+    border-top: 5px solid #4ab3ff; /* Blue */
+  }
+  100% {
+    /* border-left: 5px solid #a04ab3; /* Blue */
+    border-top: 5px solid #a04ab3;
+  }
+}
+
+.textgrab-btn-1 {
+  background-color: #4ab3ff;
+  border: none;
+  color: white;
+  padding: 5px 10px;
+  text-align: center;
+  text-decoration: none;
+  display: block;
+  font-size: 12px;
+  width: 100%;
+  margin: 4px 2px;
+  cursor: pointer;
+  border-radius: 5px;
+}
+.textgrab-btn-1:hover {
+  cursor: pointer;
+  background-color: #0a81d6;
+}
+
+#textgrab-menu {
+  position: absolute;
+  z-index: 2147483637 !important;
+  background-color: rgba(5, 18, 29, 0.421);
+  border-radius: 10px;
+  padding: 15px;
+  cursor: move;
+  text-align: center;
+}
+
 /* https://www.w3schools.com/howto/howto_js_snackbar.asp */
 
 /* The snackbar - position it at the bottom and in the middle of the screen */

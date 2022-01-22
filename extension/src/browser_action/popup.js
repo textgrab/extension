@@ -1,8 +1,9 @@
-// Add a button listener
-document.addEventListener(
-  "DOMContentLoaded",
-  async () => {
-    function handleCapture() {
+async function main() {
+  const button = document.getElementById("capture-btn");
+
+  button.addEventListener(
+    "click",
+    () => {
       // Launch the screen capture
       button.innerHTML = "Capturing...";
 
@@ -10,11 +11,8 @@ document.addEventListener(
       document.getElementById("description-btm").innerHTML =
         "Click out of this dialog and click on an image/video to capture text";
       chrome.runtime.sendMessage({ myPopupIsOpen: true });
-    }
-
-    const button = document.getElementById("capture-btn");
-
-    button.addEventListener("click", handleCapture, false);
-  },
-  false
-);
+    },
+    false
+  );
+}
+document.addEventListener("DOMContentLoaded", main, false);
