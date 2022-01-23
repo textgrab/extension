@@ -138,18 +138,31 @@ def gcp_ocr(image_file, feature):
                     if line == "":
                         line_bounding_box["x"] = word_box.vertices[0].x
                         line_bounding_box["y"] = word_box.vertices[0].y
-
-                    line_bounding_box["height"] = max(
-                        line_bounding_box["height"],
-                        word_box.vertices[3].y - word_box.vertices[0].y,
-                    )
-                    line_bounding_box["width"] = word_box.vertices[1].x - line_bounding_box["x"]
+                    
+                    if abs(line_bounding_box["y"] - word_box.vertices[3].y) > line_bounding_box["height"]*1.2:
+                        lines.append(
+                            {"text": line, "bounding_box": line_bounding_box}
+                        )
+                        para += line
+                        line = ""
+                        line_bounding_box = {
+                            "x": word_box.vertices[0].x,
+                            "y": word_box.vertices[0].y,
+                            "width": word_box.vertices[1].x - word_box.vertices[0].x,
+                            "height": word_box.vertices[3].y - word_box.vertices[0].y,
+                        }
+                    else:
+                        line_bounding_box["height"] = max(
+                            line_bounding_box["height"],
+                            abs(word_box.vertices[3].y - word_box.vertices[0].y),
+                        )
+                        line_bounding_box["width"] = word_box.vertices[1].x - line_bounding_box["x"]
 
                     for symbol in word.symbols:
-                        print (symbol.text)
+                        # print (symbol.text)
                         line += symbol.text
                         if symbol.property.detected_break.type_ == breaks.SPACE:
-                            print ("SPACE")
+                            print ("SPACE", line)
                             line += " "
                         if (
                             symbol.property.detected_break.type_
@@ -161,6 +174,7 @@ def gcp_ocr(image_file, feature):
                             lines.append(
                                 {"text": line, "bounding_box": line_bounding_box}
                             )
+                            print (line, line_bounding_box)
                             para += line
                             line = ""
                             line_bounding_box = {
@@ -172,6 +186,7 @@ def gcp_ocr(image_file, feature):
 
                         if symbol.property.detected_break.type_ == breaks.LINE_BREAK:
                             print("LINE_BREAK")
+                            print (line)
                             lines.append(
                                 {"text": line, "bounding_box": line_bounding_box}
                             )

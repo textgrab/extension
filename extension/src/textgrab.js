@@ -298,7 +298,8 @@
   async function getProcessedBoundingRects(data) {
     // to remove the 22 characters before the image data
     data = data.substr(22);
-    let res = await fetch("https://api.textgrab.io/process", {
+    // let res = await fetch("https://api.textgrab.io/process", {
+    let res = await fetch("http://localhost:8000/process", {
       method: "POST",
       headers: {
         Accept: "application/json",
