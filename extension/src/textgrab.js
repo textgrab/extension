@@ -72,7 +72,7 @@
 
       // calculate offsets of target to position text at proper position
       const { left: leftOffset, top: topOffset } = this.getTargetOffsets();
-
+      let error = 0;
       for (var i = 0; i < rects.length; i++) {
         let rect = rects[i];
         if (!rect.value) continue;
@@ -88,8 +88,8 @@
         text.innerText = rect.value;
         text.style.left = rect.x + leftOffset + "px";
         text.style.top = rect.y + topOffset + "px";
-        text.style.margin = 0;
         text.style.padding = 0;
+        text.style.margin = 0;
         text.style.color = "transparent";
 
         text.style.backgroundColor = this.config.highlightColor;
@@ -100,8 +100,11 @@
         text.style.font = this.font;
         text.style.letterSpacing = `${letterSpacing}px`;
         document.body.appendChild(text);
+
+        error += Math.pow(rect.width - text.offsetWidth, 2);
         this.renderedRects.push(text);
       }
+      console.log("Total MSE: ", error / this.renderedRects.length);
     }
 
     /**
@@ -298,8 +301,8 @@
   async function getProcessedBoundingRects(data) {
     // to remove the 22 characters before the image data
     data = data.substr(22);
-    // let res = await fetch("https://api.textgrab.io/process", {
-    let res = await fetch("http://localhost:8000/process", {
+    let res = await fetch("https://api.textgrab.io/process", {
+      // let res = await fetch("http://localhost:8000/process", {
       method: "POST",
       headers: {
         Accept: "application/json",
