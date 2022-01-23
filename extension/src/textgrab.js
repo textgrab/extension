@@ -67,9 +67,6 @@
      * @param {Array<Rect>} rects list of Rects to display
      */
     showRects(rects) {
-      // clear the previous rects
-      this.clear();
-
       // calculate offsets of target to position text at proper position
       const { left: leftOffset, top: topOffset } = this.getTargetOffsets();
       let error = 0;
@@ -147,7 +144,7 @@
      * Shows or hides the clear button
      * @param {Boolean} show whether to show or hide the clear button
      */
-    toggleMenu(show, onCopyAll = () => {}) {
+    toggleMenu(show, onCopyAll = () => {}, onRecapture = () => {}) {
       if (this.menu != null) {
         document.body.removeChild(this.menu);
         this.menu = null;
@@ -167,7 +164,7 @@
         let clearBtn = document.createElement("button");
         clearBtn.id = "textgrab-clear-btn";
         clearBtn.className = "textgrab-btn-1";
-        clearBtn.innerText = "Clear";
+        clearBtn.innerText = "Clear Selection";
 
         // Create copy all button
         let copyAll = document.createElement("button");
@@ -176,6 +173,13 @@
         copyAll.innerText = "Copy All";
         copyAll.style.marginTop = "5px";
 
+        // Create recapture button
+        let recaptureBtn = document.createElement("button");
+        recaptureBtn.id = "textgrab-recapture-btn";
+        recaptureBtn.className = "textgrab-btn-1";
+        recaptureBtn.innerText = "Recapture";
+        recaptureBtn.style.marginTop = "5px";
+
         // Add button listeners
         clearBtn.addEventListener("click", () => {
           this.clear();
@@ -183,9 +187,11 @@
         });
 
         copyAll.addEventListener("click", onCopyAll);
+        recaptureBtn.addEventListener("click", onRecapture);
 
         menu.appendChild(clearBtn);
         menu.appendChild(copyAll);
+        menu.appendChild(recaptureBtn);
         document.body.appendChild(menu);
         this.menu = menu;
         this.dragElement(menu);
@@ -478,6 +484,79 @@
     });
   }
 
+  async function getTextRects(target, renderer) {
+    let response, image;
+
+    // get the image / video data from the target
+    try {
+      image = await target.getBase64Data();
+    } catch (e) {
+      console.error(e);
+      renderer.clear();
+      showToast(
+        "Failed to get image data. This usually happens when the host doesn't allow manipulation of image content.",
+        "error"
+      );
+      return;
+    }
+
+    // Hit the API with the image data to get rects
+    try {
+      response = await getProcessedBoundingRects(image.data);
+    } catch (e) {
+      console.error(e);
+      renderer.clear();
+      showToast(
+        "Oops! Something went wrong when reaching the server. Please try again later.",
+        "error"
+      );
+      return;
+    }
+
+    console.log("Successful response");
+
+    // convert API response into Rects
+    var selectedRects = [];
+    response.lines.forEach((line) => {
+      const boundaryBox = line.bounding_box;
+      const wScale = target.getHTMLElement().offsetWidth / image.width;
+      const hScale = target.getHTMLElement().offsetHeight / image.height;
+      selectedRects.push(
+        new Rect(
+          Math.round(boundaryBox.x * wScale),
+          Math.round(boundaryBox.y * hScale),
+          boundaryBox.width * wScale,
+          boundaryBox.height * hScale,
+          line.text
+        )
+      );
+    });
+
+    return selectedRects;
+  }
+
+  function showMenu(target, renderer) {
+    renderer.toggleMenu(
+      true,
+      (onCopyAll = async () => {
+        try {
+          await navigator.clipboard.writeText(response.full_text);
+          showToast("TextGrabbed successfully!", "success");
+        } catch (e) {
+          showToast("Failed to copy text to clipboard", "error");
+        }
+      }),
+      (onRecapture = async () => {
+        renderer.clear();
+        renderer.toggleSpinner(true);
+        let textRects = await getTextRects(target, renderer);
+        renderer.showRects(textRects);
+        renderer.toggleSpinner(false);
+        showMenu(target, renderer);
+      })
+    );
+  }
+
   function main() {
     // set up ghost canvas to put the image (we need this in order to get base64 string)
     var ghost = document.createElement("canvas");
@@ -513,68 +592,19 @@
         ghostForMeasuringText,
         settings
       );
+
       renderer.toggleSpinner(true);
-
-      let response, image;
-
-      // get the image / video data from the target
-      try {
-        image = await target.getBase64Data();
-      } catch (e) {
-        console.error(e);
-        renderer.clear();
-        showToast(
-          "Failed to get image data. This usually happens when the host doesn't allow manipulation of image content.",
-          "error"
-        );
-        return;
-      }
-
-      // Hit the API with the image data to get rects
-      try {
-        response = await getProcessedBoundingRects(image.data);
-      } catch (e) {
-        console.error(e);
-        renderer.clear();
-        showToast(
-          "Oops! Something went wrong when reaching the server. Please try again later.",
-          "error"
-        );
-        return;
-      }
-
-      console.log("Successful response");
-
-      // convert API response into Rects
-      var selectedRects = [];
-      response.lines.forEach((line) => {
-        const boundaryBox = line.bounding_box;
-        const wScale = target.getHTMLElement().offsetWidth / image.width;
-        const hScale = target.getHTMLElement().offsetHeight / image.height;
-        selectedRects.push(
-          new Rect(
-            Math.round(boundaryBox.x * wScale),
-            Math.round(boundaryBox.y * hScale),
-            boundaryBox.width * wScale,
-            boundaryBox.height * hScale,
-            line.text
-          )
-        );
-      });
+      // get the rects
+      let textRects = await getTextRects(target, renderer);
+      renderer.toggleSpinner(false);
 
       // Show the results via a text overlay to the user
-      renderer.showRects(selectedRects);
-      renderer.toggleMenu(
-        true,
-        (onCopyAll = async () => {
-          try {
-            await navigator.clipboard.writeText(response.full_text);
-            showToast("TextGrabbed successfully!", "success");
-          } catch (e) {
-            showToast("Failed to copy text to clipboard", "error");
-          }
-        })
-      );
+      renderer.showRects(textRects);
+
+      // show menu
+      showMenu(target, renderer);
+
+      // to be able to cancel from background script
       chrome.runtime.onMessage.addListener(function (
         request,
         sender,
