@@ -6,9 +6,8 @@ body {
   font-size: 14px;
   margin: 0px;
   padding: 0px;
-  width: 350px;
-  border-radius: 25px;
   background-color: #262626;
+
   /* border: 0.5px solid #fff; */
   /* box-shadow: 0 4px 8px 0 rgb(0 0 0 / 20%); */
 }
@@ -17,15 +16,24 @@ h1 {
   font-size: 32px;
   font-weight: 700;
   color: #60bcff;
-  margin-top: 10px;
-  margin-left: 50px;
 }
 
 h3 {
   font-size: 18px;
+  color: white;
 }
 
-img {
+.popup-body {
+  width: 350px;
+  border-radius: 25px;
+}
+
+.popup-title {
+  margin-top: 10px;
+  margin-left: 50px;
+}
+
+.main-logo {
   width: 40px;
   float: left;
 }
@@ -38,10 +46,13 @@ img {
   padding: 10px;
 }
 
-.popup-header {
+.logo-header {
   align-items: center;
-  border-bottom: 0.5px solid #dadada;
   margin: 10px;
+}
+
+.logo-header.popup-header {
+  border-bottom: 0.5px solid #dadada;
 }
 
 .popup-content {
@@ -161,4 +172,118 @@ img {
 #drop-region:hover {
   box-shadow: 0 0 45px rgba(0, 0, 0, 0.1);
   background-color: rgb(114, 108, 108);
+}
+
+#settings-btn {
+  position: absolute;
+  width: 25px;
+  height: 25px;
+  cursor: pointer;
+  float: right;
+  top: 20px;
+  right: 20px;
+}
+
+#settings-btn:hover {
+  opacity: 0.8;
+}
+
+.dot {
+  min-height: 30px;
+  min-width: 30px;
+  margin-left: 10px;
+  background-color: rgb(255, 255, 255);
+  border-radius: 50%;
+  border: 2px solid #fff;
+  display: inline-block;
+  cursor: pointer;
+}
+.dot:hover {
+  opacity: 0.8;
+}
+
+.tg-button {
+  background-color: #4ab3ff;
+  border-radius: 25px;
+  color: white;
+  font-family: "Dosis", sans-serif;
+  font-size: 15px;
+  padding: 5px;
+  border: none;
+  margin-top: 15px;
+  margin-bottom: 15px;
+  cursor: pointer;
+  padding-left: 15px;
+  padding-right: 15px;
+}
+
+.tg-button.disabled {
+  background-color: #ccc;
+  opacity: 0.5;
+}
+
+.tg-button.disabled:hover {
+  background-color: #ccc;
+}
+.tg-button:hover {
+  background-color: #0b85dc;
+}
+
+#general-header {
+  font-size: 25px;
+  font-weight: 700;
+  margin-bottom: 20px;
+}
+
+.option {
+  display: flex;
+  justify-content: left;
+  align-items: center;
+  gap: 1rem;
+  color: white;
+  padding: 8px;
+  border-radius: 25px;
+  background-color: #363636;
+  border: 0.2px solid #424242;
+  margin-top: 20px;
+  margin-left: 30px;
+  cursor: pointer;
+}
+
+.item-info {
+  margin-top: 10px;
+  vertical-align: middle;
+}
+
+.option:hover {
+  background-color: #3d3d3d;
+}
+
+.option-title {
+  font-size: 18px;
+  font-weight: 300;
+  color: white;
+}
+
+.description {
+  color: rgb(179, 179, 179);
+  margin-top: 0;
+}
+
+#options-btn-layout {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  margin-top: 20px;
+  gap: 5px;
+}
+#save-btn {
+}
+#restore-defaults-btn {
+  background-color: gray;
+}
+
+#restore-defaults-btn:hover {
+  background-color: #646464;
 }

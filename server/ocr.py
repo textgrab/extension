@@ -55,11 +55,27 @@ def gcp_ocr(image_content):
                         line_bounding_box["x"] = word_box.vertices[0].x
                         line_bounding_box["y"] = word_box.vertices[0].y
 
-                    line_bounding_box["height"] = max(
-                        line_bounding_box["height"],
-                        word_box.vertices[3].y - word_box.vertices[0].y,
-                    )
-                    line_bounding_box["width"] = word_box.vertices[1].x - line_bounding_box["x"]
+                    # sometimes API does not return line breaks correctly
+                    # so we have to manually check ourselves
+                    if abs(line_bounding_box["y"] - word_box.vertices[3].y) > line_bounding_box["height"]*1.5:
+                        lines.append(
+                            {"text": line, "bounding_box": line_bounding_box}
+                        )
+                        para += line
+                        line = ""
+                        line_bounding_box = {
+                            "x": word_box.vertices[0].x,
+                            "y": word_box.vertices[0].y,
+                            "width": word_box.vertices[1].x - word_box.vertices[0].x,
+                            "height": word_box.vertices[3].y - word_box.vertices[0].y,
+                        }
+                    else:
+                        line_bounding_box["height"] = max(
+                            line_bounding_box["height"],
+                            abs(word_box.vertices[3].y - word_box.vertices[0].y),
+                        )
+                        line_bounding_box["width"] = word_box.vertices[1].x - line_bounding_box["x"]
+
 
                     for symbol in word.symbols:
                         line += symbol.text
@@ -69,8 +85,6 @@ def gcp_ocr(image_content):
                             symbol.property.detected_break.type_
                             == breaks.EOL_SURE_SPACE
                         ):
-                            print("EOL_SURE_SPACE")
-
                             line += " "
                             lines.append(
                                 {"text": line, "bounding_box": line_bounding_box}
@@ -85,7 +99,6 @@ def gcp_ocr(image_content):
                             }
 
                         if symbol.property.detected_break.type_ == breaks.LINE_BREAK:
-                            print("LINE_BREAK")
                             lines.append(
                                 {"text": line, "bounding_box": line_bounding_box}
                             )

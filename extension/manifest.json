@@ -11,7 +11,7 @@
   },
   "options_ui": {
     "page": "src/options/options.html",
-    "open_in_tab": false
+    "open_in_tab": true
   },
   "content_scripts": [
     {
@@ -35,5 +35,5 @@
       "description": "Use this shortcut to enable selection of text from videos, images and live meetings. Click to confirm selection."
     }
   },
-  "permissions": ["activeTab", "scripting"]
+  "permissions": ["activeTab", "scripting", "storage"]
 }

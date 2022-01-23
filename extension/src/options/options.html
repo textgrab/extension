@@ -1,27 +1,28 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>TextGrab</title>
-	<script src="https://unpkg.com/vanilla-picker@2"></script>
+	<title>TextGrab Options</title>
+	<link rel="stylesheet" href="../../css/main.css" />
+	<script src="../../libs/picker.js"></script>
+	<script src="options.js"></script>
 </head>
-<body>
-	Favorite color:
-	<select id="color">
-		<option value="red">red</option>
-		<option value="green">green</option>
-		<option value="blue">blue</option>
-		<option value="yellow">yellow</option>
-	</select>
-
-	<label>
-		<input type="checkbox" id="like">
-		I like colors.
-	</label>
-
-	<div id="status"></div>
-	<button id="save">Save</button>
-
-	<script src="./options.js"></script>
-</body>
+<body style="padding: 3rem;">
+	<div class="logo-header">
+        <img src="../../icons/logo128.png" alt="logo" class="main-logo" />
+        <h1 class="logo popup-title">TextGrab Settings</h1>
+      </div>
+	<h3 id="general-header">General</h3>
+	<hr />
+	<div class="option" id="colour-option">
+		<span class="dot" id="colour-preview"></span>
+		<div class="item-info">
+			<span class="option-title">Highlight Colour</span>
+			<p class="description">(Default: Transparent) The colour of the rectangle before highlighting. Used for visualizing text that can be selected.</p>
+		</div>
+	</div>
+	<div class="btns" id="options-btn-layout">
+		<button class="tg-button disabled" id="save-btn">Save</button>
+		<button class="tg-button" id="restore-defaults-btn">Reset to Defaults</button>
+	</div>
 </body>
 </html>
