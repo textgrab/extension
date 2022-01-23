@@ -1,4 +1,7 @@
 {
+  const OPTIONS = {
+    highlightColor: "rgba(0,0,0,0)",
+  };
   class Rect {
     constructor(x, y, width, height, value = null) {
       this.x = x;
@@ -14,12 +17,13 @@
      * @param {HTMLElement} target the element to display the text on
      * @param {HTMLCanvasElement} canvas the canvas used to measure the text
      */
-    constructor(target, canvas) {
+    constructor(target, canvas, config) {
       this.renderedRects = [];
       this.spinner = null;
       this.menu = null;
       this.target = target;
       this.font = "arial";
+      this.config = config;
 
       // used for measuring text (cannot use the same as video canvas)
       this.ghostCanvas = canvas;
@@ -84,9 +88,11 @@
         text.innerText = rect.value;
         text.style.left = rect.x + leftOffset + "px";
         text.style.top = rect.y + topOffset + "px";
+        text.style.margin = 0;
+        text.style.padding = 0;
         text.style.color = "transparent";
 
-        text.style.backgroundColor = "rgba(72, 167, 250, 0.221)";
+        text.style.backgroundColor = this.config.highlightColor;
 
         text.style.setProperty("z-index", "2147483637", "important");
         text.style.userSelect = "text";
@@ -264,10 +270,11 @@
       // to allow for manipulation of images with CORS restrictions
       this.image.crossOrigin = "anonymous";
       let frame = await new Promise((resolve, reject) => {
-        this.image.onload = () => {
-          resolve(createImageBitmap(this.image));
+        this.image.onload = async () => {
+          let bitmap = await createImageBitmap(this.image);
+          resolve(bitmap);
         };
-        this.image.onerror = () => reject("Image error");
+        this.image.onerror = (e) => reject("Error retrieving image");
       });
       var context = this.ghostCanvas.getContext("bitmaprenderer");
       const [frameWidth, frameHeight] = [frame.width, frame.height];
@@ -452,6 +459,21 @@
     }, 3000);
   }
 
+  /**
+   * Retrieves user's settings from chrome storage
+   * @returns {Object} Preferences object
+   */
+  function loadUserSettings() {
+    return new Promise((resolve, reject) => {
+      chrome.storage.sync.get(OPTIONS, function (data) {
+        if (chrome.runtime.lastError) {
+          return reject(chrome.runtime.lastError);
+        }
+        resolve(data);
+      });
+    });
+  }
+
   function main() {
     // set up ghost canvas to put the image (we need this in order to get base64 string)
     var ghost = document.createElement("canvas");
@@ -467,6 +489,9 @@
     document.body.appendChild(ghostForMeasuringText);
 
     (async function () {
+      // load user settings
+      let settings = await loadUserSettings();
+
       // get the video / image target if it exists
       let target;
       try {
@@ -481,7 +506,8 @@
       // set up the renderer on the target element
       let renderer = new Renderer(
         target.getHTMLElement(),
-        ghostForMeasuringText
+        ghostForMeasuringText,
+        settings
       );
       renderer.toggleSpinner(true);
 
@@ -545,8 +571,20 @@
           }
         })
       );
+      chrome.runtime.onMessage.addListener(function (
+        request,
+        sender,
+        sendResponse
+      ) {
+        if (request.type == "cancelCapture") {
+          try {
+            renderer.clear();
+            document.body.removeChild(ghost);
+            document.body.removeChild(ghostForMeasuringText);
+          } catch (e) {}
+        }
+      });
     })();
   }
 }
-
 main();

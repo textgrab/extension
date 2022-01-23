@@ -4,21 +4,42 @@ async function getCurrentTab() {
   return tab;
 }
 
+// inject the text capture script
 async function injectScript() {
   let tab = await getCurrentTab();
-  chrome.scripting.executeScript({
-    target: { tabId: tab.id },
-    files: ["src/textgrab.js"],
-  });
+
+  chrome.tabs.sendMessage(
+    (tabId = tab.id),
+    (message = { type: "cancelCapture" }),
+    (callback = () => {
+      chrome.scripting.executeScript({
+        target: { tabId: tab.id },
+        files: ["src/textgrab.js"],
+      });
+    })
+  );
 }
 
+// TODO: we can access CORS in background page
+function handleGetImageData(req) {}
 
-
-chrome.runtime.onMessage.addListener(function (message, sender) {
-  console.log(message);
-  if (!message.myPopupIsOpen) return;
-
+function handleCaptureButton(req) {
   injectScript();
+  return { message: "Capturing..." };
+}
+
+chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
+  if (!request.type) {
+    sendResponse({ error: "No type specified" });
+    return;
+  }
+  const handlers = { captureBtn: handleCaptureButton };
+  const handler = handlers[request.type];
+  if (!handler) {
+    sendResponse({ error: "No handler for type" });
+    return;
+  }
+  sendResponse(handler(request));
 });
 
 chrome.commands.onCommand.addListener(function (command) {
@@ -29,5 +50,3 @@ chrome.commands.onCommand.addListener(function (command) {
     }
   }
 });
-
-
