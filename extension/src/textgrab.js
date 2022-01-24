@@ -92,7 +92,7 @@
         text.style.backgroundColor = this.config.highlightColor;
 
         text.style.setProperty("z-index", "2147483637", "important");
-        text.style.userSelect = "text";
+        text.style.userSelect = "contain";
         text.style.fontSize = `${rect.height}px`;
         text.style.font = this.font;
         text.style.letterSpacing = `${letterSpacing}px`;
