@@ -101,6 +101,11 @@
         error += Math.pow(rect.width - text.offsetWidth, 2);
         this.renderedRects.push(text);
       }
+      trackEvent(
+        "ui_action",
+        "rect_accuracy",
+        Math.round(error / this.renderedRects.length)
+      );
       console.log("Total MSE: ", error / this.renderedRects.length);
     }
 
@@ -300,11 +305,25 @@
     }
   }
 
+  function trackEvent(category, action, label, value = null) {
+    const data = {
+      type: "event",
+      category,
+      event: action,
+      label,
+    };
+    if (value != null) {
+      data["value"] = value;
+    }
+    chrome.runtime.sendMessage(data);
+  }
+
   /**
    * @param {str} data Image data to send to the API
    * @returns JSON object of response of API /process
    */
   async function getProcessedBoundingRects(data) {
+    const startTime = performance.now();
     // to remove the 22 characters before the image data
     data = data.substr(22);
     let res = await fetch("https://api.textgrab.io/process", {
@@ -317,6 +336,8 @@
       body: JSON.stringify({ imageData: data }),
     });
     const content = await res.json();
+    const duration = performance.now() - startTime;
+    trackEvent("API", "process", "duration", Math.round(duration));
     return content;
   }
 
@@ -348,6 +369,7 @@
        */
       function handleKeyPress(e) {
         if (e.key == "Escape" || e.key == "Esc" || e.keyCode == 27) {
+          trackEvent("ui_event", "cancel_selection", "ESC");
           cancelSelection();
           resolve(null);
         }
@@ -365,6 +387,7 @@
         let res = getTargetHelper(e.target, ghostElement);
 
         if (res == null) {
+          trackEvent("ui_event", "cancel_selection", "window_click");
           reject("Please select an image or video element");
         } else {
           resolve(res);
@@ -388,6 +411,7 @@
 
         let res = getTargetHelper(element, ghostElement);
         if (!res) {
+          trackEvent("ui_event", "cancel_selection", "window_click");
           reject("Please select an image or video element");
           return false;
         }
@@ -493,6 +517,7 @@
     } catch (e) {
       console.error(e);
       renderer.clear();
+      trackEvent("image_error", "get_base64_data", e.message);
       showToast(
         "Failed to get image data. This usually happens when the host doesn't allow manipulation of image content.",
         "error"
@@ -506,6 +531,7 @@
     } catch (e) {
       console.error(e);
       renderer.clear();
+      trackEvent("api_error", "getProcessedBoundingRects", e.message);
       showToast(
         "Oops! Something went wrong when reaching the server. Please try again later.",
         "error"
@@ -532,16 +558,24 @@
       );
     });
 
-    return selectedRects;
+    return { rects: selectedRects, full_text: response.full_text };
   }
 
-  function showMenu(target, renderer) {
+  /**
+   * Shows the menu on the target element.
+   * TODO: Remove full_text and implement cleaner solution
+   * @param {Image | Video} target
+   * @param {Renderer} renderer
+   * @param {String} full_text
+   */
+  function showMenu(target, renderer, full_text) {
     renderer.toggleMenu(
       true,
       (onCopyAll = async () => {
         try {
-          await navigator.clipboard.writeText(response.full_text);
+          await navigator.clipboard.writeText(full_text);
           showToast("TextGrabbed successfully!", "success");
+          trackEvent("buttons", "menu", "copy_all");
         } catch (e) {
           showToast("Failed to copy text to clipboard", "error");
         }
@@ -549,9 +583,10 @@
       (onRecapture = async () => {
         renderer.clear();
         renderer.toggleSpinner(true);
-        let textRects = await getTextRects(target, renderer);
-        renderer.showRects(textRects);
+        let { rects, full_text } = await getTextRects(target, renderer);
+        renderer.showRects(rects);
         renderer.toggleSpinner(false);
+        trackEvent("buttons", "menu", "recapture");
         showMenu(target, renderer);
       })
     );
@@ -586,6 +621,8 @@
         return;
       }
 
+      trackEvent("ui_event", "target_found", target.getHTMLElement().nodeName);
+
       // set up the renderer on the target element
       let renderer = new Renderer(
         target.getHTMLElement(),
@@ -595,14 +632,14 @@
 
       renderer.toggleSpinner(true);
       // get the rects
-      let textRects = await getTextRects(target, renderer);
+      let { rects, full_text } = await getTextRects(target, renderer);
       renderer.toggleSpinner(false);
 
       // Show the results via a text overlay to the user
-      renderer.showRects(textRects);
+      renderer.showRects(rects);
 
       // show menu
-      showMenu(target, renderer);
+      showMenu(target, renderer, full_text);
 
       // to be able to cancel from background script
       chrome.runtime.onMessage.addListener(function (
@@ -615,6 +652,7 @@
             renderer.clear();
             document.body.removeChild(ghost);
             document.body.removeChild(ghostForMeasuringText);
+            sendResponse({ success: true });
           } catch (e) {}
         }
       });
