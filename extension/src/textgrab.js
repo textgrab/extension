@@ -102,7 +102,8 @@
         this.renderedRects.push(text);
       }
       trackEvent(
-        "ui_action",
+        "ui_result",
+        "process",
         "rect_accuracy",
         Math.round(error / this.renderedRects.length)
       );
@@ -189,6 +190,7 @@
         clearBtn.addEventListener("click", () => {
           this.clear();
           this.toggleMenu(false);
+          trackEvent("buttons", "menu", "clear_selection");
         });
 
         copyAll.addEventListener("click", onCopyAll);
@@ -212,6 +214,7 @@
         pos2Y = 0;
 
       elmnt.onmousedown = dragMouseDown;
+      let localTarget = this.target;
 
       function dragMouseDown(e) {
         e = e || window.event;
@@ -241,6 +244,28 @@
         // stop moving when mouse button is released:
         document.onmouseup = null;
         document.onmousemove = null;
+        const finalRect = elmnt.getBoundingClientRect();
+        const targetRect = localTarget.getBoundingClientRect();
+
+        const centerX = finalRect.left + finalRect.width / 2;
+        const centerY = finalRect.top + finalRect.height / 2;
+
+        // we want to calculate the position in terms of percentage relative to the top left
+        // corner of the target element to the center of the menu.
+        const percentageX =
+          ((centerX - (targetRect.left + finalRect.width / 2)) /
+            (targetRect.width - finalRect.width)) *
+          100;
+        const percentageY =
+          ((centerY - (targetRect.top + finalRect.height / 2)) /
+            (targetRect.height - finalRect.height)) *
+          100;
+        trackEvent(
+          "ui_event",
+          "drag_menu",
+          `${percentageX.toPrecision(5)} x% ; ${percentageY.toPrecision(5)} y%`,
+          Math.round(percentageX)
+        );
       }
     }
   }
@@ -514,10 +539,15 @@
     // get the image / video data from the target
     try {
       image = await target.getBase64Data();
+      trackEvent(
+        "image",
+        "get_base64_data_success",
+        target.getHTMLElement().nodeName
+      );
     } catch (e) {
       console.error(e);
       renderer.clear();
-      trackEvent("image_error", "get_base64_data", e.message);
+      trackEvent("image", "get_base64_data_error", e.message);
       showToast(
         "Failed to get image data. This usually happens when the host doesn't allow manipulation of image content.",
         "error"
@@ -531,7 +561,7 @@
     } catch (e) {
       console.error(e);
       renderer.clear();
-      trackEvent("api_error", "getProcessedBoundingRects", e.message);
+      trackEvent("API", "api_error", e.message);
       showToast(
         "Oops! Something went wrong when reaching the server. Please try again later.",
         "error"
@@ -557,6 +587,8 @@
         )
       );
     });
+
+    trackEvent("API", "api_success", "get_text_rects", selectedRects.length);
 
     return { rects: selectedRects, full_text: response.full_text };
   }

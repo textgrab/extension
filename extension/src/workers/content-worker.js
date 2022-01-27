@@ -1,6 +1,7 @@
 class Analytics {
-  constructor(config) {
+  constructor(config, manifest) {
     this.config = config;
+    this.manifest = manifest;
   }
 
   /**
@@ -16,6 +17,8 @@ class Analytics {
       v: 1,
       tid: this.config.tracking_id,
       cid: this.config.client_id,
+      an: this.manifest.name,
+      av: this.manifest.version,
       t: "event",
       ec: category,
       ea: event,
@@ -78,10 +81,13 @@ const initialize = getClientID().then((data) => {
   clientID = data;
   // These aren't actually secret so it's safe to expose them
   // within the client.
-  analytics = new Analytics({
-    tracking_id: "UA-217904698-1",
-    client_id: clientID,
-  });
+  analytics = new Analytics(
+    {
+      tracking_id: "UA-217904698-1",
+      client_id: clientID,
+    },
+    chrome.runtime.getManifest()
+  );
 });
 
 async function trackEvent({ category, event, label, value, data }) {
@@ -118,8 +124,8 @@ async function handleCaptureButton(req) {
   await injectScript();
   trackEvent({
     category: "buttons",
-    event: "popup",
-    label: "capture_btn",
+    event: "capture_btn",
+    label: "capture",
   });
   return { message: "Capturing..." };
 }
@@ -152,6 +158,11 @@ chrome.runtime.onMessage.addListener(async function (
 chrome.commands.onCommand.addListener(function (command) {
   switch (command) {
     case "textgrab": {
+      trackEvent({
+        category: "shortcuts",
+        event: "alt_c",
+        label: "capture",
+      });
       injectScript();
       break;
     }
