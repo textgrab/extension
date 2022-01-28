@@ -313,7 +313,8 @@
           let bitmap = await createImageBitmap(this.image);
           resolve(bitmap);
         };
-        this.image.onerror = (e) => reject("Error retrieving image");
+        this.image.onerror = (e) =>
+          reject(`Error retrieving image: ${String(e)}`);
       });
       var context = this.ghostCanvas.getContext("bitmaprenderer");
       const [frameWidth, frameHeight] = [frame.width, frame.height];
@@ -547,7 +548,7 @@
     } catch (e) {
       console.error(e);
       renderer.clear();
-      trackEvent("image", "get_base64_data_error", e.message);
+      trackEvent("image", "get_base64_data_error", String(e));
       showToast(
         "Failed to get image data. This usually happens when the host doesn't allow manipulation of image content.",
         "error"
@@ -601,6 +602,7 @@
    * @param {String} full_text
    */
   function showMenu(target, renderer, full_text) {
+    const startTime = performance.now();
     renderer.toggleMenu(
       true,
       (onCopyAll = async () => {
@@ -615,7 +617,16 @@
       (onRecapture = async () => {
         renderer.clear();
         renderer.toggleSpinner(true);
-        let { rects, full_text } = await getTextRects(target, renderer);
+        const recaptureDelay = performance.now() - startTime;
+        trackEvent(
+          "ui_event",
+          "recapture_interval",
+          String(recaptureDelay),
+          Math.round(recaptureDelay)
+        );
+        const response = await getTextRects(target, renderer);
+        if (!response) return;
+        const { rects, full_text } = response;
         renderer.showRects(rects);
         renderer.toggleSpinner(false);
         trackEvent("buttons", "menu", "recapture");
@@ -664,7 +675,9 @@
 
       renderer.toggleSpinner(true);
       // get the rects
-      let { rects, full_text } = await getTextRects(target, renderer);
+      const response = await getTextRects(target, renderer);
+      if (!response) return;
+      const { rects, full_text } = response;
       renderer.toggleSpinner(false);
 
       // Show the results via a text overlay to the user
