@@ -110,10 +110,20 @@ async function injectScript() {
       if (chrome.runtime.lastError) {
         // expected on first run. This check silences the error.
       }
-      chrome.scripting.executeScript({
-        target: { tabId: tab.id },
-        files: ["src/textgrab.js"],
-      });
+
+      // inject CSS and then the script
+      chrome.scripting.insertCSS(
+        {
+          target: { tabId: tab.id },
+          files: ["css/textgrab.css"],
+        },
+        () => {
+          chrome.scripting.executeScript({
+            target: { tabId: tab.id },
+            files: ["src/textgrab.js"],
+          });
+        }
+      );
     })
   );
 }
