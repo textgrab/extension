@@ -704,7 +704,7 @@
         renderer.showRects(rects);
         renderer.toggleSpinner(false);
         trackEvent("buttons", "menu", "recapture");
-        showMenu(target, renderer);
+        showMenu(target, renderer, full_text);
       })
     );
   }
