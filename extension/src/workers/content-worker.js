@@ -6,10 +6,11 @@ class Analytics {
 
   /**
    * Tracks an event
-   * @param {String} category
-   * @param {String} event
-   * @param {String} label
-   * @param {Object} data
+   * @param {String} category the event category
+   * @param {String} event the event name (action on Google Analytics)
+   * @param {String} label the event label
+   * @param {Number} value the event value (needs to be a positive number)
+   * @param {Object} data Any additional data to be sent to Google Analytics
    */
   track(category, event, label, value, data = {}) {
     const HOST_URL = "https://www.google-analytics.com/collect";
