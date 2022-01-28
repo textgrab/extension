@@ -331,6 +331,24 @@
     }
   }
 
+  class Canvas {
+    constructor(htmlElement, ghostCanvas) {
+      this.canvas = htmlElement;
+      this.ghostCanvas = ghostCanvas;
+    }
+    async getBase64Data() {
+      return {
+        data: this.canvas.toDataURL(),
+        width: this.canvas.width,
+        height: this.canvas.height,
+      };
+    }
+
+    getHTMLElement() {
+      return this.canvas;
+    }
+  }
+
   function trackEvent(category, action, label, value = null) {
     const data = {
       type: "event",
@@ -372,7 +390,7 @@
    * We recursively walk the tree to find a video/img element from a click event
    * or raise an error if no element is found.
    * @param {HTMLElement} ghostElement : The ghost canvas used to get the base64 version of an image
-   * @returns {Promise<Video | Image>}
+   * @returns {Promise<Video | Image | Canvas>}
    */
   function getTarget(ghostElement) {
     return new Promise(function (resolve, reject) {
@@ -381,7 +399,7 @@
 
       window.addEventListener("click", handleGlobalClick);
 
-      let elements = document.querySelectorAll("img,video");
+      let elements = document.querySelectorAll("img,video,canvas");
       elements.forEach((el) => {
         el.classList.add(MOUSE_VISITED_CLASSNAME);
         el.addEventListener("click", handleElementClick);
@@ -410,12 +428,12 @@
         e.preventDefault();
         e.stopPropagation();
         cancelSelection();
-        let res = getTargetHelper(e.target, ghostElement);
-
+        let res = getTargetFromChildren(e.target, ghostElement);
         if (res == null) {
-          trackEvent("ui_event", "cancel_selection", "window_click");
+          trackEvent("ui_event", "cancel_selection", "window_click_target");
           reject("Please select an image or video element");
         } else {
+          trackEvent("ui_event", "target_found_method", "normal_element");
           resolve(res);
         }
         return false;
@@ -433,21 +451,52 @@
         e.preventDefault();
         cancelSelection();
 
-        let element = document.elementFromPoint(e.x, e.y);
+        // First check the elements that we know are valid
+        for (let i = 0; i < elements.length; i++) {
+          const boundingRect = elements[i].getBoundingClientRect();
+          // check if the click is within the bounding box of the element
+          if (
+            e.x >= boundingRect.left &&
+            e.x <= boundingRect.right &&
+            e.y >= boundingRect.top &&
+            e.y <= boundingRect.bottom
+          ) {
+            let res = getTargetFromChildren(elements[i], ghostElement);
+            if (res != null) {
+              trackEvent(
+                "ui_event",
+                "target_found_method",
+                "global_element_click"
+              );
+              resolve(res);
+              return;
+            }
+          }
+        }
 
-        let res = getTargetHelper(element, ghostElement);
-        if (!res) {
-          trackEvent("ui_event", "cancel_selection", "window_click");
-          reject("Please select an image or video element");
+        // sorted from top most element (highest z-index) to lowest (usually html)
+        let elementsAtPoint = document.elementsFromPoint(e.x, e.y);
+
+        // First check parents since that is generally faster
+        let res = getTargetFromParents(elementsAtPoint, ghostElement);
+        if (res != null) {
+          trackEvent("ui_event", "target_found_method", "target_from_parents");
+          resolve(res);
+          return;
+        }
+
+        // then check children
+        const curElement = elementsAtPoint[0];
+        res = getTargetFromChildren(curElement, ghostElement);
+        if (res != null) {
+          trackEvent("ui_event", "target_found_method", "target_from_children");
+          resolve(res);
           return false;
         }
 
-        // otherwise, we can resolve the promise
-        // this is usually in the case of HTML elements
-        // placed out of the document, e.g. shadow DOM
-        // the outline will not show for these elements,
-        // but it will still work
-        resolve(res);
+        // otherwise, there is no element at the point that is valid
+        trackEvent("ui_event", "cancel_selection", "window_click");
+        reject("Please select an image or video element to select text from");
         return false;
       }
 
@@ -466,20 +515,45 @@
     });
   }
 
+  function getTargetFromParents(candidates, ghostElement) {
+    if (!candidates || candidates.length == 0) return null;
+    let overflow = [];
+    for (i = 0; i < candidates.length; i++) {
+      switch (candidates[i].nodeName) {
+        case "VIDEO":
+          return new Video(candidates[i], ghostElement);
+        case "IMAGE":
+          return new Image(candidates[i], ghostElement);
+        case "CANVAS":
+          return new Canvas(candidates[i], ghostElement);
+        default:
+          if (candidates[i].shadowRoot) {
+            overflow = overflow.concat(
+              Array.from(candidates[i].shadowRoot.children)
+            );
+          }
+      }
+    }
+
+    return getTargetFromParents(overflow, ghostElement);
+  }
+
   /**
    * Recursive DFS search for any valid node that is a video or image element
    * @param {HTMLElement} root
    * @param {HTMLElement} ghostElement (used only to create {Image} or {Video} instances)
    * TODO: Narrow search by checking if the user's click is within the bounds of root
-   * @returns {Video | Image | null}
+   * @returns {Video | Image | Canvas | null}
    */
-  function getTargetHelper(root, ghostElement) {
+  function getTargetFromChildren(root, ghostElement) {
     if (root == null) return null;
     switch (root.nodeName) {
       case "VIDEO":
         return new Video(root, ghostElement);
       case "IMG":
         return new Image(root, ghostElement);
+      case "CANVAS":
+        return new Canvas(root, ghostElement);
       default: {
         var children = Array.from(root.children);
         // On D2L, video is nested within shadowRoot for some reason
@@ -490,7 +564,7 @@
 
         // walk through the children
         for (var i = 0; i < children.length; i++) {
-          let element = getTargetHelper(children[i], ghostElement);
+          let element = getTargetFromChildren(children[i], ghostElement);
           if (element != null) return element;
         }
 
@@ -597,7 +671,7 @@
   /**
    * Shows the menu on the target element.
    * TODO: Remove full_text and implement cleaner solution
-   * @param {Image | Video} target
+   * @param {Image | Video | Canvas} target
    * @param {Renderer} renderer
    * @param {String} full_text
    */
