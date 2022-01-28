@@ -1,3 +1,18 @@
+// Ideally should be in a library
+// This function is reused
+function trackEvent(category, action, label, value = null) {
+  const data = {
+    type: "event",
+    category,
+    event: action,
+    label,
+  };
+  if (value != null) {
+    data["value"] = value;
+  }
+  chrome.runtime.sendMessage(data);
+}
+
 async function main() {
   const button = document.getElementById("capture-btn");
 
@@ -17,6 +32,7 @@ async function main() {
 
   const settings = document.getElementById("settings-btn");
   settings.addEventListener("click", () => {
+    trackEvent("buttons", "popup", "settings_btn");
     if (chrome.runtime.openOptionsPage) {
       chrome.runtime.openOptionsPage();
     } else {

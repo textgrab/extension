@@ -1,3 +1,18 @@
+// Ideally should be in a library
+// This function is reused
+function trackEvent(category, action, label, value = null) {
+  const data = {
+    type: "event",
+    category,
+    event: action,
+    label,
+  };
+  if (value != null) {
+    data["value"] = value;
+  }
+  chrome.runtime.sendMessage(data);
+}
+
 const OPTIONS = {
   highlightColor: "rgba(0,0,0,0)",
 };
@@ -36,6 +51,9 @@ function loadUserPrefs() {
 }
 
 function saveSettings() {
+  if (newSettings.hasOwnProperty("highlightColor")) {
+    trackEvent("options", "highlightColor", newSettings.highlightColor);
+  }
   Object.assign(settingsCache, newSettings);
   return new Promise((resolve, reject) => {
     chrome.storage.sync.set(settingsCache, function () {
@@ -105,6 +123,7 @@ function setUpButtons() {
   const restoreDefaultsBtn = document.querySelector("#restore-defaults-btn");
   restoreDefaultsBtn.addEventListener("click", () => {
     if (confirm("Restore defaults?") == true) {
+      trackEvent("buttons", "options", "restore_defaults_btn");
       restoreDefaults().then(() => {
         location.reload();
       });
@@ -113,6 +132,7 @@ function setUpButtons() {
 
   const saveBtn = document.querySelector("#save-btn");
   saveBtn.addEventListener("click", async () => {
+    trackEvent("buttons", "options", "save_settings_btn");
     await saveSettings();
     onUpdateNewSettings();
     alert("Saved Settings!");
