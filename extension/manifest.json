@@ -13,12 +13,6 @@
     "page": "src/options/options.html",
     "open_in_tab": true
   },
-  "content_scripts": [
-    {
-      "matches": ["http://*/*", "https://*/*"],
-      "css": ["css/textgrab.css"]
-    }
-  ],
   "background": {
     "service_worker": "src/workers/content-worker.js"
   },
