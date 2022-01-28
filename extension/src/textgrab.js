@@ -390,7 +390,7 @@
    * We recursively walk the tree to find a video/img element from a click event
    * or raise an error if no element is found.
    * @param {HTMLElement} ghostElement : The ghost canvas used to get the base64 version of an image
-   * @returns {Promise<Video | Image>}
+   * @returns {Promise<Video | Image | Canvas>}
    */
   function getTarget(ghostElement) {
     return new Promise(function (resolve, reject) {
@@ -433,6 +433,7 @@
           trackEvent("ui_event", "cancel_selection", "window_click_target");
           reject("Please select an image or video element");
         } else {
+          trackEvent("ui_event", "target_found_method", "normal_element");
           resolve(res);
         }
         return false;
@@ -462,6 +463,11 @@
           ) {
             let res = getTargetFromChildren(elements[i], ghostElement);
             if (res != null) {
+              trackEvent(
+                "ui_event",
+                "target_found_method",
+                "global_element_click"
+              );
               resolve(res);
               return;
             }
@@ -471,14 +477,10 @@
         // sorted from top most element (highest z-index) to lowest (usually html)
         let elementsAtPoint = document.elementsFromPoint(e.x, e.y);
 
-        if (!elementsAtPoint || elementsAtPoint.length == 0) {
-          resolve(null);
-          return;
-        }
-
         // First check parents since that is generally faster
         let res = getTargetFromParents(elementsAtPoint, ghostElement);
         if (res != null) {
+          trackEvent("ui_event", "target_found_method", "target_from_parents");
           resolve(res);
           return;
         }
@@ -487,6 +489,7 @@
         const curElement = elementsAtPoint[0];
         res = getTargetFromChildren(curElement, ghostElement);
         if (res != null) {
+          trackEvent("ui_event", "target_found_method", "target_from_children");
           resolve(res);
           return false;
         }
@@ -540,7 +543,7 @@
    * @param {HTMLElement} root
    * @param {HTMLElement} ghostElement (used only to create {Image} or {Video} instances)
    * TODO: Narrow search by checking if the user's click is within the bounds of root
-   * @returns {Video | Image | null}
+   * @returns {Video | Image | Canvas | null}
    */
   function getTargetFromChildren(root, ghostElement) {
     if (root == null) return null;
@@ -668,7 +671,7 @@
   /**
    * Shows the menu on the target element.
    * TODO: Remove full_text and implement cleaner solution
-   * @param {Image | Video} target
+   * @param {Image | Video | Canvas} target
    * @param {Renderer} renderer
    * @param {String} full_text
    */
