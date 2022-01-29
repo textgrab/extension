@@ -1,3 +1,5 @@
+const TRACKING_ID = "UA-217904698-1";
+
 class Analytics {
   constructor(config, manifest) {
     this.config = config;
@@ -84,7 +86,7 @@ const initialize = getClientID().then((data) => {
   // within the client.
   analytics = new Analytics(
     {
-      tracking_id: "UA-217904698-1",
+      tracking_id: TRACKING_ID,
       client_id: clientID,
     },
     chrome.runtime.getManifest()

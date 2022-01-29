@@ -644,8 +644,6 @@
       return;
     }
 
-    console.log("Successful response");
-
     // convert API response into Rects
     var selectedRects = [];
     response.lines.forEach((line) => {
