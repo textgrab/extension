@@ -2,7 +2,7 @@
   "name": "TextGrab",
   "version": "0.0.1",
   "manifest_version": 3,
-  "description": "Copy text from videos, images and live meetings! Grabbing text has never been easier",
+  "description": "Copy text from videos, images and live meetings! Grabbing text has never been easier!",
   "icons": {
     "16": "icons/logo16.png",
     "32": "icons/logo32.png",
