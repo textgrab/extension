@@ -214,7 +214,7 @@ def render_doc_text(filein, fileout):
     # draw_boxes(image, bounds, "black")
     
     _, bounds = gcp_ocr(filein, FeatureType.BLOCK)
-    draw_boxes_2(image, bounds, "green")
+    draw_boxes_2(image, bounds, "red")
 
     if fileout != 0:
         image.save(fileout)
