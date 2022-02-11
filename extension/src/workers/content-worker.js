@@ -193,7 +193,10 @@ chrome.runtime.onInstalled.addListener(async function (details) {
           label: thisVersion,
         });
       });
-      break;
+      chrome.tabs.create(
+        { url: chrome.runtime.getURL("src/pages/onboarding.html") },
+        function (tab) {}
+      );
     case "update":
       trackEvent({
         category: "app_updates",

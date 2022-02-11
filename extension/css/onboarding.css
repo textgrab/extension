@@ -1,0 +1,44 @@
+.onboarding-card {
+  /* margin: 2rem; */
+  opacity: 1;
+  transition: all 0.3s ease-in-out;
+  animation-duration: 1s;
+  animation-name: scaleoutin;
+  background-color: rgb(61, 61, 61);
+  border-radius: 25px;
+  color: white;
+}
+
+.card-text {
+  text-align: justify;
+  text-justify: inter-word;
+}
+
+#onboarding-card-1 {
+  animation-delay: 0.5s;
+}
+
+#onboarding-card-2 {
+  animation-delay: 1.5s;
+}
+
+#onboarding-card-3 {
+  animation-delay: 2.5s;
+}
+
+#onboarding-title {
+  background-color: rgb(61, 61, 61);
+  padding: 1rem;
+  border-radius: 25px 25px 0px 0px;
+}
+
+@keyframes scaleoutin {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(0.95);
+  }
+}
