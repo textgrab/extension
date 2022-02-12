@@ -386,6 +386,21 @@
   }
 
   /**
+   * Checks whether an event occurred within a given element
+   * @param {Event} e : the event object
+   * @param {any} rect - bounding box of the HTML element
+   * @returns
+   */
+  function checkEventInRect(e, rect) {
+    return (
+      e.x >= rect.left &&
+      e.x <= rect.right &&
+      e.y >= rect.top &&
+      e.y <= rect.bottom
+    );
+  }
+
+  /**
    * Returns the target (either Video or Image) after user selects it.
    * We recursively walk the tree to find a video/img element from a click event
    * or raise an error if no element is found.
@@ -396,16 +411,37 @@
     return new Promise(function (resolve, reject) {
       // Unique ID for the className.
       var MOUSE_VISITED_CLASSNAME = "crx_mouse_visited";
+      window.focus();
 
-      window.addEventListener("click", handleGlobalClick);
+      window.addEventListener("click", handleGlobalClick, {
+        once: true,
+      });
 
       let elements = document.querySelectorAll("img,video,canvas");
       elements.forEach((el) => {
         el.classList.add(MOUSE_VISITED_CLASSNAME);
-        el.addEventListener("click", handleElementClick);
+        el.addEventListener("click", handleElementClick, {
+          once: true,
+        });
       });
 
       document.addEventListener("keydown", handleKeyPress);
+
+      window.addEventListener(
+        "blur",
+        () => {
+          setTimeout(() => {
+            if (document.activeElement.tagName === "IFRAME") {
+              trackEvent("ui_event", "selection_error", "iframe");
+              cancelSelection();
+              reject(
+                "Unfortuanately, TextGrab cannot access the content of content in iframes due to security restrictions."
+              );
+            }
+          });
+        },
+        { once: true }
+      );
 
       /**
        * We need to cancel selection when ESC is pressed
@@ -450,17 +486,11 @@
       function handleGlobalClick(e) {
         e.preventDefault();
         cancelSelection();
-
         // First check the elements that we know are valid
         for (let i = 0; i < elements.length; i++) {
           const boundingRect = elements[i].getBoundingClientRect();
           // check if the click is within the bounding box of the element
-          if (
-            e.x >= boundingRect.left &&
-            e.x <= boundingRect.right &&
-            e.y >= boundingRect.top &&
-            e.y <= boundingRect.bottom
-          ) {
+          if (checkEventInRect(e, boundingRect)) {
             let res = getTargetFromChildren(elements[i], ghostElement);
             if (res != null) {
               trackEvent(
@@ -477,21 +507,27 @@
         // sorted from top most element (highest z-index) to lowest (usually html)
         let elementsAtPoint = document.elementsFromPoint(e.x, e.y);
 
+        let res;
+
         // First check parents since that is generally faster
-        let res = getTargetFromParents(elementsAtPoint, ghostElement);
-        if (res != null) {
+        res = getTargetFromParents(elementsAtPoint, ghostElement);
+        if (
+          res != null &&
+          checkEventInRect(e, res.getHTMLElement().getBoundingClientRect())
+        ) {
           trackEvent("ui_event", "target_found_method", "target_from_parents");
-          resolve(res);
-          return;
+          return resolve(res);
         }
 
         // then check children
         const curElement = elementsAtPoint[0];
         res = getTargetFromChildren(curElement, ghostElement);
-        if (res != null) {
+        if (
+          res != null &&
+          checkEventInRect(e, res.getHTMLElement().getBoundingClientRect())
+        ) {
           trackEvent("ui_event", "target_found_method", "target_from_children");
-          resolve(res);
-          return false;
+          return resolve(res);
         }
 
         // otherwise, there is no element at the point that is valid
@@ -648,12 +684,13 @@
     var selectedRects = [];
     response.lines.forEach((line) => {
       const boundaryBox = line.bounding_box;
-      const wScale = target.getHTMLElement().offsetWidth / image.width;
-      const hScale = target.getHTMLElement().offsetHeight / image.height;
+      const elementRect = target.getHTMLElement().getBoundingClientRect();
+      const wScale = elementRect.width / image.width;
+      const hScale = elementRect.height / image.height;
       selectedRects.push(
         new Rect(
-          Math.round(boundaryBox.x * wScale),
-          Math.round(boundaryBox.y * hScale),
+          boundaryBox.x * wScale,
+          boundaryBox.y * hScale,
           boundaryBox.width * wScale,
           boundaryBox.height * hScale,
           line.text
