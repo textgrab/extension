@@ -12,6 +12,7 @@
 .card-text {
   text-align: justify;
   text-justify: inter-word;
+  color: rgb(196, 195, 195);
 }
 
 #onboarding-card-1 {
