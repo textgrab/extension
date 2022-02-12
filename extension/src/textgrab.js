@@ -435,7 +435,7 @@
               trackEvent("ui_event", "selection_error", "iframe");
               cancelSelection();
               reject(
-                "Unfortuanately, TextGrab cannot access the content of content in iframes due to security restrictions."
+                "Due to security measures, TextGrab cannot access content within an iframe HTML element."
               );
             }
           });
@@ -614,7 +614,7 @@
    * @param {String} message to display in toast
    * @param {String} type one of error, info, success. Default is info
    */
-  function showToast(message, type = "info") {
+  function showToast(message, type = "info", duration = 3000) {
     var toast = document.createElement("div");
     toast.id = "textgrab-snackbar";
     toast.className = `tg-show tg-${type}`;
@@ -626,7 +626,7 @@
       setTimeout(function () {
         document.body.removeChild(toast);
       }, 1000);
-    }, 3000);
+    }, duration);
   }
 
   /**
