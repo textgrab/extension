@@ -1,23 +1,26 @@
 <!DOCTYPE html>
 <html>
+
 <head>
 	<title>TextGrab Options</title>
 	<link rel="stylesheet" href="../../css/main.css" />
 	<script src="../../libs/picker.js"></script>
 	<script src="options.js"></script>
 </head>
+
 <body style="padding: 3rem;">
 	<div class="logo-header">
-        <img src="../../icons/logo128.png" alt="logo" class="main-logo" />
-        <h1 class="logo popup-title">TextGrab Settings</h1>
-      </div>
+		<img src="../../icons/logo.svg" alt="logo" class="main-logo options-logo" />
+		<h1 class="logo popup-title">TextGrab Settings</h1>
+	</div>
 	<h3 id="general-header">General</h3>
-	<hr />
+	<!-- <hr /> -->
 	<div class="option" id="colour-option">
 		<span class="dot" id="colour-preview"></span>
 		<div class="item-info">
 			<span class="option-title">Highlight Colour</span>
-			<p class="description">(Default: Transparent) The colour of the rectangle before highlighting. Used for visualizing text that can be selected.</p>
+			<p class="description">(Default: Transparent) The colour of the rectangle before highlighting. Used for
+				visualizing text that can be selected.</p>
 		</div>
 	</div>
 	<div class="btns" id="options-btn-layout">
@@ -25,4 +28,17 @@
 		<button class="tg-button" id="restore-defaults-btn">Reset to Defaults</button>
 	</div>
 </body>
+
+<footer>
+	<p>
+		<span>Copyright &copy; 2022 TextGrab</span>
+	</p>
+	<div class="footer-links">
+		<a class="link-secondary" href="https://www.textgrab.io/terms-of-use">Terms of Use</a>
+		<div> | </div>
+		<a class="link-secondary" href="https://www.textgrab.io/privacy-policy">Privacy Policy</a>
+	</div>
+
+</footer>
+
 </html>
