@@ -1,30 +1,29 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <link rel="stylesheet" href="../../css/main.css" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Dosis:wght@300;400;500;600;700&display=swap"
-      rel="stylesheet"
-    />
-    <script src="popup.js"></script>
-  </head>
 
-  <body class="popup-body">
-    <div class="container">
-      <div class="logo-header popup-header">
-        <img src="../../icons/logo128.png" alt="logo" class="main-logo" />
-        <h1 class="logo popup-title">TextGrab</h1>
-        <img src="../../img/settings-gear-svgrepo-com.svg" id="settings-btn"></img>
-      </div>
-      <div class="popup-content">
-        <button id="capture-btn">Capture</button>
-        <p id="description-btm" class="description">
-          Or use the shortcut ALT-C (Opt-C) to enter selection mode
-        </p>
-      </div>
-      <!-- <h3 class="centered">or</h3>
+<head>
+  <link rel="stylesheet" href="../../css/main.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Dosis:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <script src="popup.js"></script>
+</head>
+
+<body class="popup-body">
+  <div class="container">
+    <div class="logo-header popup-header">
+      <img src="../../icons/logo.svg" alt="logo" class="main-logo" />
+      <h1 class="logo popup-title">TextGrab</h1>
+      <img src="../../img/options.svg" id="settings-btn"></img>
+      <img src="../../img/help-btn.svg" id="help-btn"></img>
+    </div>
+    <div class="popup-content">
+      <button id="capture-btn">Capture Text</button>
+      <p id="description-btm" class="description">
+        Or use the shortcut Option-C (Alt-C)
+      </p>
+    </div>
+    <!-- <h3 class="centered">or</h3>
       <div id="drop-region">
           <div class="drop-message">
               Drag & Drop image here
@@ -32,7 +31,7 @@
           <div id="image-preview"></div>
       </div> -->
 
-      <!-- <div id='results' class="popup-extra">
+    <!-- <div id='results' class="popup-extra">
 			<div class="btns">
 				<button id="notesbtn">&#x1F4DD extracted notes</button>
 				<button id="topicsbtn">&#x1F4DD key topics</button>
@@ -56,8 +55,9 @@
 				<p id='summary'></p>
 			</div>
 		</div> -->
-    </div>
+  </div>
 
-    <!-- chrome.tabs.script -->
-  </body>
+  <!-- chrome.tabs.script -->
+</body>
+
 </html>

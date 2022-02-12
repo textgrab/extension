@@ -14,13 +14,13 @@ function trackEvent(category, action, label, value = null) {
 }
 
 async function main() {
-  const button = document.getElementById("capture-btn");
+  const captureBtn = document.getElementById("capture-btn");
 
-  button.addEventListener(
+  captureBtn.addEventListener(
     "click",
     () => {
       // Launch the screen capture
-      button.innerHTML = "Capturing...";
+      captureBtn.innerHTML = "Capturing...";
 
       // null tab ID means use active tab
       document.getElementById("description-btm").innerHTML =
@@ -30,13 +30,20 @@ async function main() {
     false
   );
 
+  const helpBtn = document.getElementById("help-btn");
+  helpBtn.addEventListener("click", () => {
+    chrome.tabs.create({
+      url: chrome.runtime.getURL("src/pages/onboarding.html"),
+    });
+  });
+
   const settings = document.getElementById("settings-btn");
   settings.addEventListener("click", () => {
     trackEvent("buttons", "popup", "settings_btn");
     if (chrome.runtime.openOptionsPage) {
       chrome.runtime.openOptionsPage();
     } else {
-      window.open(chrome.runtime.getURL("options.html"));
+      window.open(chrome.runtime.getURL("src/options/options.html"));
     }
   });
 }

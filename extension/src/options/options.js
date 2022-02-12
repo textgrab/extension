@@ -122,7 +122,11 @@ function setUpColourPicker(parent) {
 function setUpButtons() {
   const restoreDefaultsBtn = document.querySelector("#restore-defaults-btn");
   restoreDefaultsBtn.addEventListener("click", () => {
-    if (confirm("Restore defaults?") == true) {
+    if (
+      confirm(
+        "Reset all options to their default values? This action cannot be undone!"
+      ) == true
+    ) {
       trackEvent("buttons", "options", "restore_defaults_btn");
       restoreDefaults().then(() => {
         location.reload();
