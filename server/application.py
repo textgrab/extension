@@ -1,19 +1,16 @@
 # import psycopg2
-from flask import Flask, request, jsonify, Response, make_response
+from flask import Flask, request, jsonify, make_response
 from flask_cors import CORS, cross_origin
+from numpy import block
 
 from config import Config
-from ocr import gcp_ocr
 
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 
-# from ner import ner_spacy
-# from summarization import summarize_bart
-
 import shortuuid
 
-# COCKROACH_DB_PASS = os.environ.get('COCKROACH_DB_PASS')
+from api.GoogleAPI import GoogleVisionAPI
 
 
 app = Flask(__name__)
@@ -21,11 +18,7 @@ cors = CORS(app)
 
 limiter = Limiter(app, key_func=get_remote_address)
 
-# conn = psycopg2.connect(user="htn21",
-#                         password=COCKROACH_DB_PASS,
-#                         host="free-tier.gcp-us-central1.cockroachlabs.cloud",
-#                         port="26257",
-#                         database="weepy-hyena-3533.defaultdb")
+visionAPI = GoogleVisionAPI()
 
 
 @app.route("/", methods=["GET"])
@@ -47,7 +40,7 @@ def new_session():
 
 @app.route("/process", methods=["POST"])
 @cross_origin()
-@limiter.limit("20/minute")  # maximum of 10 requests per minute
+@limiter.limit("10/minute")  # maximum of 10 requests per minute
 def process():
     """
     Payload:
@@ -59,41 +52,22 @@ def process():
 
     imageData = data.get("imageData")
 
-    # Get OCR text using GCP
-    paragraphs, lines = gcp_ocr(imageData)
-    full_text = "\n".join(paragraphs)
-    # Run Named Entity Recognition
-    # entities = ner_spacy(full_text)
+    blocks = visionAPI.annotate_image(imageData)
+    lines = []
 
-    # Summarize the text
-    # summary = summarize_bart(full_text)
-    print(lines)
+    for b in blocks:
+        lines.extend(b.lines)
+
     response = make_response(
         jsonify(
             {
-                "full_text": full_text,
-                "lines": lines,
-                "entities": [],
-                "summary": "",
+                "full_text": "\n".join([block.text for block in blocks]),
+                "lines": [line.json for line in lines],
+                "blocks": [block.json for block in blocks],
             }
         )
     )
-    # Write to CockroachDB and write the image to Google blob storage
-
-    # @response.call_on_close
-    # def on_close():
-    #     cur = conn.cursor()
-    #     sql = """
-    #         INSERT INTO analytics (full_text, summary, entities)
-    #         VALUES (%s, %s, %s);
-    #     """
-    #     data = (json.dumps(full_text), json.dumps(summary), json.dumps(entities))
-
-    #     cur.execute(sql, data)
-    #     # cur.execute("SELECT * from analytics;")
-    #     # records = cur.fetchall()
-    #     conn.commit()
-
+    print(f"Processed {len(blocks)} blocks, {len(lines)} lines")
     return response
 
 
