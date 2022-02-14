@@ -1,6 +1,10 @@
 from dataclasses import dataclass
 from typing import List
-from PIL import ImageDraw
+
+try:
+    from PIL import ImageDraw
+except ImportError:
+    print("Cannot access PIL library. Please install it if running locally.")
 
 
 class BoundingBox:
@@ -57,7 +61,7 @@ class BoundingBox:
             "height": self.height,
         }
 
-    def debug_draw(self, imageDraw: ImageDraw.ImageDraw, color: str = "green"):
+    def debug_draw(self, imageDraw: "ImageDraw.ImageDraw", color: str = "green"):
         imageDraw.polygon(
             [
                 self.left,
