@@ -2,7 +2,7 @@
 
 import argparse
 
-from ..server.api.GoogleAPI import GoogleVisionAPI
+from api.GoogleAPI import GoogleVisionAPI
 
 
 if __name__ == "__main__":
