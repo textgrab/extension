@@ -95,6 +95,13 @@
       const { left: leftOffset, top: topOffset } = this.getTargetOffsets();
       let error = 0;
       let numRects = 0;
+      const testBlock = document.createElement("div");
+      testBlock.innerHTML =
+        "This is a test of seeing what is wrong with copying";
+      testBlock.style.position = "absolute";
+      testBlock.style.left = "0px";
+      testBlock.style.top = "300px";
+      document.body.appendChild(testBlock);
       blocks.forEach((block) => {
         const blockElement = document.createElement("div");
         blockElement.style.position = "absolute";
@@ -107,7 +114,7 @@
         // and the border of the block to make selection easier
         blockElement.style.padding = "10px";
         blockElement.style.margin = 0;
-        blockElement.style.setProperty("z-index", "2147483637", "important");
+        blockElement.style.setProperty("z-index", "2147483636", "important");
         // blockElement.style.border = "1px solid red";
         for (let line of block.lines) {
           error += this.showLineInBlock(blockElement, line);
@@ -125,7 +132,7 @@
         "rect_accuracy",
         Math.round(error / numRects)
       );
-      console.log("Total MSE: ", error / numRects);
+      console.log("Mean Absolute Error: ", error / numRects);
     }
 
     /**
@@ -143,9 +150,25 @@
       // thus we need line.text.length instead of line.text.length - 1
       let letterSpacing = (rect.width - textWidth) / line.text.length;
 
-      let text = document.createElement("div");
+      let formattedBullets =
+        line.text.startsWith("•") ||
+        line.text.startsWith("◦") ||
+        line.text.startsWith("-");
+
+      let text = formattedBullets
+        ? document.createElement("ul")
+        : document.createElement("div");
+
       text.style.position = "absolute";
-      text.innerText = line.text;
+
+      if (formattedBullets) {
+        let child = document.createElement("li");
+        child.innerText = line.text;
+        text.appendChild(child);
+      } else {
+        text.innerText = line.text;
+      }
+
       text.style.left = rect.x + "px";
       text.style.top = rect.y + "px";
       text.style.padding = 0;
@@ -163,9 +186,8 @@
 
       parentElement.appendChild(text);
 
-      return Math.pow(rect.width - text.getBoundingClientRect().width, 2);
+      return Math.abs(rect.width - text.getBoundingClientRect().width);
     }
-
     /**
      * Clears all the rects off the screen
      */
