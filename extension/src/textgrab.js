@@ -8,31 +8,7 @@
       this.y = y;
       this.width = width;
       this.height = height;
-    }
-  }
-
-  class Line {
-    /**
-     * A line represents a rectangle with text in it.
-     * @param {Rect} rect
-     * @param {String} text
-     */
-    constructor(rect, text = "") {
-      this.rect = rect;
-      this.text = text;
-    }
-  }
-
-  class Block {
-    /**
-     * A block is a block of related text. This sort of like a paragraph
-     * in the sense it has multiple lines in close proximity.
-     * @param {Rect} rect
-     * @param {Array<Line>} lines
-     */
-    constructor(rect, lines = []) {
-      this.rect = rect;
-      this.lines = lines;
+      this.value = value; // This is a special field to hold the text contained within the Rect
     }
   }
 
@@ -42,7 +18,7 @@
      * @param {HTMLCanvasElement} canvas the canvas used to measure the text
      */
     constructor(target, canvas, config) {
-      this.renderedBlocks = [];
+      this.renderedRects = [];
       this.spinner = null;
       this.menu = null;
       this.target = target;
@@ -87,93 +63,61 @@
     }
 
     /**
-     *
-     * @param {Array<Block>} blocks
+     * Inserts HTML elements into the DOM for each Rect
+     * @param {Array<Rect>} rects list of Rects to display
      */
-    showBlocks(blocks) {
-      this.clear();
+    showRects(rects) {
+      // calculate offsets of target to position text at proper position
       const { left: leftOffset, top: topOffset } = this.getTargetOffsets();
       let error = 0;
-      let numRects = 0;
-      blocks.forEach((block) => {
-        const blockElement = document.createElement("div");
-        blockElement.style.position = "absolute";
-        blockElement.style.left = block.rect.x + leftOffset + "px";
-        blockElement.style.top = block.rect.y + topOffset + "px";
-        blockElement.style.width = block.rect.width + "px";
-        blockElement.style.height = block.rect.height + "px";
+      for (var i = 0; i < rects.length; i++) {
+        let rect = rects[i];
+        if (!rect.value) continue;
 
-        // padding is used so user has some space between the word
-        // and the border of the block to make selection easier
-        blockElement.style.padding = "10px";
-        blockElement.style.margin = 0;
-        blockElement.style.setProperty("z-index", "2147483637", "important");
-        // blockElement.style.border = "1px solid red";
-        for (let line of block.lines) {
-          error += this.showLineInBlock(blockElement, line);
-          blockElement.appendChild(document.createElement("br"));
-          numRects += 1;
-        }
-        document.body.appendChild(blockElement);
+        let textWidth = this.getTextWidth(rect.value, rect.height);
 
-        this.renderedBlocks.push(blockElement);
-      });
+        // letter spacing also adds a space at the end of text
+        // thus we need rect.value.length instead of rect.value.length - 1
+        let letterSpacing = (rect.width - textWidth) / rect.value.length;
 
+        let text = document.createElement("div");
+        text.style.position = "absolute";
+        text.innerText = rect.value;
+        text.style.left = rect.x + leftOffset + "px";
+        text.style.top = rect.y + topOffset + "px";
+        text.style.padding = 0;
+        text.style.margin = 0;
+        text.style.color = "transparent";
+
+        text.style.backgroundColor = this.config.highlightColor;
+
+        text.style.setProperty("z-index", "2147483637", "important");
+        text.style.userSelect = "text";
+        text.style.fontSize = `${rect.height}px`;
+        text.style.font = this.font;
+        text.style.letterSpacing = `${letterSpacing}px`;
+        document.body.appendChild(text);
+
+        error += Math.pow(rect.width - text.offsetWidth, 2);
+        this.renderedRects.push(text);
+      }
       trackEvent(
         "ui_result",
         "process",
         "rect_accuracy",
-        Math.round(error / numRects)
+        Math.round(error / this.renderedRects.length)
       );
-      console.log("Total MSE: ", error / numRects);
-    }
-
-    /**
-     *
-     * @param {HTMLElement} parentElement
-     * @param {Line} line
-     */
-    showLineInBlock(parentElement, line) {
-      if (!line.text || line.text.length == 0) return;
-      let rect = line.rect;
-
-      let textWidth = this.getTextWidth(line.text, rect.height);
-
-      // letter spacing also adds a space at the end of text
-      // thus we need line.text.length instead of line.text.length - 1
-      let letterSpacing = (rect.width - textWidth) / line.text.length;
-
-      let text = document.createElement("div");
-      text.style.position = "absolute";
-      text.innerText = line.text;
-      text.style.left = rect.x + "px";
-      text.style.top = rect.y + "px";
-      text.style.padding = 0;
-      text.style.margin = 0;
-      text.style.whiteSpace = "nowrap";
-      text.style.color = "transparent";
-
-      text.style.backgroundColor = this.config.highlightColor;
-
-      text.style.setProperty("z-index", "2147483637", "important");
-      text.style.userSelect = "text";
-      text.style.fontSize = `${rect.height}px`;
-      text.style.font = this.font;
-      text.style.letterSpacing = `${letterSpacing}px`;
-
-      parentElement.appendChild(text);
-
-      return Math.pow(rect.width - text.getBoundingClientRect().width, 2);
+      console.log("Total MSE: ", error / this.renderedRects.length);
     }
 
     /**
      * Clears all the rects off the screen
      */
     clear() {
-      this.renderedBlocks.forEach((val) => {
+      this.renderedRects.forEach((val) => {
         document.body.removeChild(val);
       });
-      this.renderedBlocks = [];
+      this.renderedRects = [];
       this.toggleSpinner(false);
       this.toggleMenu(false);
     }
@@ -422,7 +366,7 @@
    * @param {str} data Image data to send to the API
    * @returns JSON object of response of API /process
    */
-  async function callGetTextBlocksAPI(data) {
+  async function getProcessedBoundingRects(data) {
     const startTime = performance.now();
     // to remove the 22 characters before the image data
     data = data.substr(22);
@@ -436,9 +380,6 @@
       body: JSON.stringify({ imageData: data }),
     });
     const content = await res.json();
-    if (content.hasOwnProperty("error") && content.error.message) {
-      throw new APIError(content.error.message);
-    }
     const duration = performance.now() - startTime;
     trackEvent("API", "process", "duration", Math.round(duration));
     return content;
@@ -457,13 +398,6 @@
       e.y >= rect.top &&
       e.y <= rect.bottom
     );
-  }
-
-  class APIError extends Error {
-    constructor(message) {
-      super(message);
-      this.name = "APIError";
-    }
   }
 
   /**
@@ -617,13 +551,6 @@
     });
   }
 
-  /**
-   * This function is usually passed a list of parents from a target element
-   * and checks if any of the parents are a video or image element.
-   * @param {Array<HTMLElement>} candidates : The list of elements to check
-   * @param {Canvas} ghostElement used to create {Image} or {Video} instances
-   * @returns
-   */
   function getTargetFromParents(candidates, ghostElement) {
     if (!candidates || candidates.length == 0) return null;
     let overflow = [];
@@ -650,7 +577,7 @@
   /**
    * Recursive DFS search for any valid node that is a video or image element
    * @param {HTMLElement} root
-   * @param {Canvas} ghostElement used to create {Image} or {Video} instances
+   * @param {HTMLElement} ghostElement (used only to create {Image} or {Video} instances)
    * TODO: Narrow search by checking if the user's click is within the bounds of root
    * @returns {Video | Image | Canvas | null}
    */
@@ -717,14 +644,7 @@
     });
   }
 
-  /**
-   * Does the heavy-lifting of getting the text from the element
-   * by hitting the API, and converting its response into {Block}s
-   * @param {HTMLElement} target
-   * @param {Renderer} renderer
-   * @returns
-   */
-  async function getTextBlocksForTarget(target, renderer) {
+  async function getTextRects(target, renderer) {
     let response, image;
 
     // get the image / video data from the target
@@ -748,55 +668,39 @@
 
     // Hit the API with the image data to get rects
     try {
-      response = await callGetTextBlocksAPI(image.data);
+      response = await getProcessedBoundingRects(image.data);
     } catch (e) {
       console.error(e);
       renderer.clear();
-      if (e instanceof APIError) {
-        trackEvent("API", "api_error", e.message);
-        showToast(e.message, "error");
-      } else {
-        trackEvent("API", "api_error", String(e));
-        showToast(
-          "Oops! Something went wrong when reaching the server. Please try again later.",
-          "error"
-        );
-      }
+      trackEvent("API", "api_error", e.message);
+      showToast(
+        "Oops! Something went wrong when reaching the server. Please try again later.",
+        "error"
+      );
       return;
     }
 
-    const blocks = [];
-    let numRects = 0;
-    response.blocks.forEach((block) => {
-      const blockBoundingBox = block.bounding_box;
-      const targetRect = target.getHTMLElement().getBoundingClientRect();
-      const wScale = targetRect.width / image.width;
-      const hScale = targetRect.height / image.height;
-
-      const block_rect = new Rect(
-        blockBoundingBox.x * wScale,
-        blockBoundingBox.y * hScale,
-        blockBoundingBox.width * wScale,
-        blockBoundingBox.height * hScale
+    // convert API response into Rects
+    var selectedRects = [];
+    response.lines.forEach((line) => {
+      const boundaryBox = line.bounding_box;
+      const elementRect = target.getHTMLElement().getBoundingClientRect();
+      const wScale = elementRect.width / image.width;
+      const hScale = elementRect.height / image.height;
+      selectedRects.push(
+        new Rect(
+          boundaryBox.x * wScale,
+          boundaryBox.y * hScale,
+          boundaryBox.width * wScale,
+          boundaryBox.height * hScale,
+          line.text
+        )
       );
-
-      const lines = block.lines.map((line) => {
-        // calculate position relative to the block
-        const line_rect = new Rect(
-          (line.bounding_box.x - blockBoundingBox.x) * wScale,
-          (line.bounding_box.y - blockBoundingBox.y) * hScale,
-          line.bounding_box.width * wScale,
-          line.bounding_box.height * hScale
-        );
-        numRects += 1;
-        return new Line(line_rect, line.text);
-      });
-      blocks.push(new Block(block_rect, lines));
     });
 
-    trackEvent("API", "api_success", "get_text_rects", numRects);
+    trackEvent("API", "api_success", "get_text_rects", selectedRects.length);
 
-    return { blocks, full_text: response.full_text };
+    return { rects: selectedRects, full_text: response.full_text };
   }
 
   /**
@@ -829,13 +733,11 @@
           String(recaptureDelay),
           Math.round(recaptureDelay)
         );
-
-        // we have to recapture the text for the target
-        const response = await getTextBlocksForTarget(target, renderer);
+        const response = await getTextRects(target, renderer);
         if (!response) return;
-        const { blocks, full_text } = response;
+        const { rects, full_text } = response;
+        renderer.showRects(rects);
         renderer.toggleSpinner(false);
-        renderer.showBlocks(blocks);
         trackEvent("buttons", "menu", "recapture");
         showMenu(target, renderer, full_text);
       })
@@ -882,13 +784,13 @@
 
       renderer.toggleSpinner(true);
       // get the rects
-      const response = await getTextBlocksForTarget(target, renderer);
+      const response = await getTextRects(target, renderer);
       if (!response) return;
-      const { blocks, full_text } = response;
+      const { rects, full_text } = response;
       renderer.toggleSpinner(false);
 
       // Show the results via a text overlay to the user
-      renderer.showBlocks(blocks);
+      renderer.showRects(rects);
 
       // show menu
       showMenu(target, renderer, full_text);
