@@ -118,7 +118,6 @@
         document.body.appendChild(blockElement);
         let lineElement = null;
         let yOffset = 0;
-        console.log(block.lines);
         // blockElement.style.border = "1px solid red";
         for (let i = 0; i < block.lines.length; i++) {
           const line = block.lines[i];
@@ -821,11 +820,6 @@
     });
 
     trackEvent("API", "api_success", "get_text_rects", numRects);
-
-    window.addEventListener("copy", async (e) => {
-      console.log(e);
-      console.log(window.getSelection().toString());
-    });
 
     return { blocks, full_text: response.full_text };
   }
