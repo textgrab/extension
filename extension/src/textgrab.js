@@ -95,13 +95,6 @@
       const { left: leftOffset, top: topOffset } = this.getTargetOffsets();
       let error = 0;
       let numRects = 0;
-      const testBlock = document.createElement("div");
-      testBlock.innerHTML =
-        "This is a test of seeing what is wrong with copying";
-      testBlock.style.position = "absolute";
-      testBlock.style.left = "0px";
-      testBlock.style.top = "300px";
-      document.body.appendChild(testBlock);
       blocks.forEach((block) => {
         const blockElement = document.createElement("div");
         blockElement.style.position = "absolute";
@@ -109,19 +102,40 @@
         blockElement.style.top = block.rect.y + topOffset + "px";
         blockElement.style.width = block.rect.width + "px";
         blockElement.style.height = block.rect.height + "px";
+        blockElement.style.setProperty(
+          "backgroundColor",
+          "rbga(0,0,0,0)",
+          "important"
+        );
 
         // padding is used so user has some space between the word
         // and the border of the block to make selection easier
-        blockElement.style.padding = "10px";
+        blockElement.style.paddingRight = block.rect.width / 10 + "px";
+        blockElement.style.paddingBottom = block.rect.height / 10 + "px";
         blockElement.style.margin = 0;
         blockElement.style.setProperty("z-index", "2147483636", "important");
+
+        document.body.appendChild(blockElement);
+        let lineElement = null;
+        let yOffset = 0;
+        console.log(block.lines);
         // blockElement.style.border = "1px solid red";
-        for (let line of block.lines) {
-          error += this.showLineInBlock(blockElement, line);
-          blockElement.appendChild(document.createElement("br"));
+        for (let i = 0; i < block.lines.length; i++) {
+          const line = block.lines[i];
+          yOffset +=
+            lineElement == null
+              ? line.rect.y
+              : line.rect.y -
+                block.lines[i - 1].rect.y -
+                block.lines[i - 1].rect.height;
+
+          lineElement = this.createLineInBlock(line, yOffset);
+          error += Math.abs(
+            line.rect.width - lineElement.getBoundingClientRect().width
+          );
+          blockElement.appendChild(lineElement);
           numRects += 1;
         }
-        document.body.appendChild(blockElement);
 
         this.renderedBlocks.push(blockElement);
       });
@@ -139,8 +153,9 @@
      *
      * @param {HTMLElement} parentElement
      * @param {Line} line
+     * @returns {HTMLElement}
      */
-    showLineInBlock(parentElement, line) {
+    createLineInBlock(line, offsetY) {
       if (!line.text || line.text.length == 0) return;
       let rect = line.rect;
 
@@ -149,34 +164,25 @@
       // letter spacing also adds a space at the end of text
       // thus we need line.text.length instead of line.text.length - 1
       let letterSpacing = (rect.width - textWidth) / line.text.length;
+      let text = document.createElement("div");
 
-      let formattedBullets =
-        line.text.startsWith("•") ||
-        line.text.startsWith("◦") ||
-        line.text.startsWith("-");
-
-      let text = formattedBullets
-        ? document.createElement("ul")
-        : document.createElement("div");
-
-      text.style.position = "absolute";
-
-      if (formattedBullets) {
-        let child = document.createElement("li");
-        child.innerText = line.text;
-        text.appendChild(child);
-      } else {
-        text.innerText = line.text;
-      }
+      text.style.position = "relative";
+      text.innerText = line.text;
+      text.style.width = rect.width + "px";
+      text.style.height = rect.height + "px";
 
       text.style.left = rect.x + "px";
-      text.style.top = rect.y + "px";
+      text.style.top = offsetY + "px";
       text.style.padding = 0;
       text.style.margin = 0;
       text.style.whiteSpace = "nowrap";
       text.style.color = "transparent";
 
-      text.style.backgroundColor = this.config.highlightColor;
+      text.style.setProperty(
+        "background-color",
+        this.config.highlightColor,
+        "important"
+      );
 
       text.style.setProperty("z-index", "2147483637", "important");
       text.style.userSelect = "text";
@@ -184,9 +190,7 @@
       text.style.font = this.font;
       text.style.letterSpacing = `${letterSpacing}px`;
 
-      parentElement.appendChild(text);
-
-      return Math.abs(rect.width - text.getBoundingClientRect().width);
+      return text;
     }
     /**
      * Clears all the rects off the screen
@@ -817,6 +821,11 @@
     });
 
     trackEvent("API", "api_success", "get_text_rects", numRects);
+
+    window.addEventListener("copy", async (e) => {
+      console.log(e);
+      console.log(window.getSelection().toString());
+    });
 
     return { blocks, full_text: response.full_text };
   }
