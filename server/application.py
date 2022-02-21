@@ -62,7 +62,10 @@ def process():
             {
                 "full_text": "\n".join([block.text for block in blocks]),
                 "lines": [line.json for line in lines],
-                "blocks": [block.json for block in blocks],
+                "blocks": [
+                    block.json
+                    for block in sorted(blocks, key=lambda x: [x.bbox.top, x.bbox.left])
+                ],
             }
         )
     )
