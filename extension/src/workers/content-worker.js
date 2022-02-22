@@ -1,9 +1,10 @@
 const TRACKING_ID = "UA-217904698-1";
 
 class Analytics {
-  constructor(config, manifest) {
+  constructor(config, manifest, enabled = true) {
     this.config = config;
     this.manifest = manifest;
+    this.enabled = enabled;
   }
 
   /**
@@ -15,6 +16,9 @@ class Analytics {
    * @param {Object} data Any additional data to be sent to Google Analytics
    */
   track(category, event, label, value, data = {}) {
+    if (!this.enabled) {
+      return;
+    }
     const HOST_URL = "https://www.google-analytics.com/collect";
     const params = {
       v: 1,
@@ -26,6 +30,7 @@ class Analytics {
       ec: category,
       ea: event,
       el: label,
+      aip: 1,
       ...data,
     };
     if (value) {
@@ -35,6 +40,10 @@ class Analytics {
     fetch(`${HOST_URL}?${searchParams}`, {
       method: "POST",
     });
+  }
+
+  setEnabled(enabled) {
+    this.enabled = enabled;
   }
 }
 
@@ -54,20 +63,24 @@ function createUUID() {
   return uuid;
 }
 
-function getClientID() {
+function getClientInfo() {
   return new Promise((resolve, reject) => {
-    chrome.storage.sync.get({ USER_UID: null }, function (data) {
-      if (chrome.runtime.lastError) {
-        return reject(chrome.runtime.lastError);
+    chrome.storage.sync.get(
+      { USER_UID: null, analyticsOptIn: true },
+      function (data) {
+        if (chrome.runtime.lastError) {
+          return reject(chrome.runtime.lastError);
+        }
+        if (data.USER_UID) {
+          return resolve(data);
+        } else {
+          const uuid = createUUID();
+          chrome.storage.sync.set({ USER_UID: uuid }, function () {
+            resolve({ USER_UID: uuid, analyticsOptIn: data.analyticsOptIn });
+          });
+        }
       }
-      if (data.USER_UID) {
-        return resolve(data.USER_UID);
-      } else {
-        const uuid = createUUID();
-        chrome.storage.sync.set({ USER_UID: uuid }, function () {});
-        return resolve(uuid);
-      }
-    });
+    );
   });
 }
 
@@ -78,19 +91,30 @@ async function getCurrentTab() {
 }
 
 let analytics = null;
-let clientID = null;
+let clientInfo = null;
 
-const initialize = getClientID().then((data) => {
-  clientID = data;
+const initialize = getClientInfo().then((data) => {
+  clientInfo = data;
   // These aren't actually secret so it's safe to expose them
   // within the client.
   analytics = new Analytics(
     {
       tracking_id: TRACKING_ID,
-      client_id: clientID,
+      client_id: clientInfo.USER_UID,
     },
-    chrome.runtime.getManifest()
+    chrome.runtime.getManifest(),
+    clientInfo.analyticsOptIn
   );
+});
+
+chrome.storage.onChanged.addListener((changes, area) => {
+  if (area === "sync" && changes.analyticsOptIn) {
+    const collectAnalytics = Boolean(changes.analyticsOptIn.newValue);
+    console.log("Switched analytics to", collectAnalytics);
+    if (analytics) {
+      analytics.setEnabled(collectAnalytics);
+    }
+  }
 });
 
 async function trackEvent({ category, event, label, value, data }) {
@@ -186,12 +210,11 @@ chrome.runtime.onInstalled.addListener(async function (details) {
   let thisVersion = chrome.runtime.getManifest().version;
   switch (details.reason) {
     case "install":
-      chrome.storage.sync.set({ USER_UID: createUUID() }, function () {
-        trackEvent({
-          category: "app_updates",
-          event: "install",
-          label: thisVersion,
-        });
+      getClientInfo();
+      trackEvent({
+        category: "app_updates",
+        event: "install",
+        label: thisVersion,
       });
       chrome.tabs.create(
         { url: chrome.runtime.getURL("src/pages/onboarding.html") },
