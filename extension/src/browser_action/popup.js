@@ -32,6 +32,8 @@ async function main() {
 
   const helpBtn = document.getElementById("help-btn");
   helpBtn.addEventListener("click", () => {
+    trackEvent("buttons", "popup", "help_btn");
+
     chrome.tabs.create({
       url: chrome.runtime.getURL("src/pages/onboarding.html"),
     });
@@ -45,6 +47,14 @@ async function main() {
     } else {
       window.open(chrome.runtime.getURL("src/options/options.html"));
     }
+  });
+
+  const coffeeBtn = document.getElementById("coffee-btn");
+  coffeeBtn.addEventListener("click", () => {
+    trackEvent("buttons", "popup", "donate_btn");
+    chrome.tabs.create({
+      url: "https://www.buymeacoffee.com/textgrab",
+    });
   });
 }
 document.addEventListener("DOMContentLoaded", main, false);
