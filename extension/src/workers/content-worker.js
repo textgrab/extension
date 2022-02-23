@@ -127,7 +127,7 @@ async function trackEvent({ category, event, label, value, data }) {
 }
 
 // inject the text capture script
-async function injectScript() {
+async function injectScript(file = "src/textgrab.js") {
   let tab = await getCurrentTab();
   chrome.tabs.sendMessage(
     (tabId = tab.id),
@@ -146,7 +146,7 @@ async function injectScript() {
         () => {
           chrome.scripting.executeScript({
             target: { tabId: tab.id },
-            files: ["src/textgrab.js"],
+            files: [file],
           });
         }
       );
@@ -154,8 +154,16 @@ async function injectScript() {
   );
 }
 
-// TODO: we can access CORS in background page
-async function handleGetImageData(req) {}
+async function handleFallbackCapture() {
+  injectScript("src/fallback.js");
+}
+
+async function handleTabScreenshot(req) {
+  let screenshot = await chrome.tabs.captureVisibleTab(
+    (options = { format: "png" })
+  );
+  return { message: "Success", screenshot: screenshot };
+}
 
 async function handleCaptureButton(req) {
   await injectScript();
@@ -170,14 +178,12 @@ async function handleCaptureButton(req) {
 const eventHandlers = {
   captureBtn: handleCaptureButton,
   event: trackEvent,
+  startFallback: handleFallbackCapture,
+  getTabScreenshot: handleTabScreenshot,
 };
 
 /* Event Listeners */
-chrome.runtime.onMessage.addListener(async function (
-  request,
-  sender,
-  sendResponse
-) {
+chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
   if (!request.type) {
     sendResponse({ error: "No type specified" });
     return true;
@@ -187,8 +193,7 @@ chrome.runtime.onMessage.addListener(async function (
     sendResponse({ error: "No handler for type" });
     return true;
   }
-  let response = await handler(request);
-  sendResponse(response);
+  handler(request).then(sendResponse);
   return true;
 });
 

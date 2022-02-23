@@ -15,7 +15,6 @@ function trackEvent(category, action, label, value = null) {
 
 async function main() {
   const captureBtn = document.getElementById("capture-btn");
-
   captureBtn.addEventListener(
     "click",
     () => {
@@ -26,9 +25,24 @@ async function main() {
       document.getElementById("description-btm").innerHTML =
         "Click out of this dialog and click on an image/video to capture text";
       chrome.runtime.sendMessage({ type: "captureBtn" });
+      window.close();
     },
     false
   );
+
+  const fallbackCapture = document.getElementById("fallback-btn");
+  fallbackCapture.addEventListener("click", () => {
+    trackEvent("buttons", "popup", "fallback_capture");
+    const data = {
+      type: "startFallback",
+    };
+
+    chrome.runtime.sendMessage(data);
+
+    setTimeout(() => {
+      window.close();
+    }, 100);
+  });
 
   const helpBtn = document.getElementById("help-btn");
   helpBtn.addEventListener("click", () => {
