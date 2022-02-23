@@ -266,7 +266,7 @@
       navigator.clipboard
         .writeText(apiResponse.full_text)
         .then((res) => {
-          showToast("Copied to clipboard", "success");
+          showToast("Copied selected text to clipboard!", "success");
         })
         .catch((err) => {
           showToast("Error copying to clipboard", "error");
