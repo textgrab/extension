@@ -25,7 +25,9 @@ async function main() {
       document.getElementById("description-btm").innerHTML =
         "Click out of this dialog and click on an image/video to capture text";
       chrome.runtime.sendMessage({ type: "captureBtn" });
-      window.close();
+      setTimeout(() => {
+        window.close();
+      }, 100);
     },
     false
   );
