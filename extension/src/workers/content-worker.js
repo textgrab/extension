@@ -243,3 +243,7 @@ chrome.runtime.onInstalled.addListener(async function (details) {
       break;
   }
 });
+
+chrome.runtime.setUninstallURL(
+  "https://docs.google.com/forms/d/e/1FAIpQLScN9aLqweRqjtog5mKKDHFnO2UjxXurB2iRxWMWC_A9hwht6A/viewform?usp=sf_link"
+);
