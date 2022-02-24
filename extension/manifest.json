@@ -27,6 +27,12 @@
         "default": "Alt+C"
       },
       "description": "Use this shortcut to enable selection of text from videos, images and live meetings. Click to confirm selection."
+    },
+    "textgrab_fallback": {
+      "suggested_key": {
+        "default": "Alt+T"
+      },
+      "description": "This shortcut enables the precise selection of text from videos, images and live meetings."
     }
   },
   "permissions": ["activeTab", "scripting", "storage"]

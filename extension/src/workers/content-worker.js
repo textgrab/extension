@@ -208,6 +208,15 @@ chrome.commands.onCommand.addListener(function (command) {
       injectScript();
       break;
     }
+    case "textgrab_fallback": {
+      trackEvent({
+        category: "shortcuts",
+        event: "alt_t",
+        label: "fallback_capture",
+      });
+      handleFallbackCapture();
+      break;
+    }
   }
 });
 
