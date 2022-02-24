@@ -46,10 +46,12 @@
       let divElement = null;
       let oldOverflowValue = document.documentElement.style.overflow;
       let oldUserSelectValue = document.documentElement.style.userSelect;
+      let oldPointerEventsValue = document.documentElement.style.pointerEvents;
       let oldCursorValue = document.documentElement.style.cursor;
 
       document.documentElement.style.overflow = "hidden";
       document.documentElement.style.userSelect = "none";
+      document.documentElement.style.pointerEvents = "none";
       document.documentElement.style.cursor = "crosshair";
 
       overlay = document.createElement("div");
@@ -64,7 +66,7 @@
       overlay.style.zIndex = "2147483646";
       overlay.style.userSelect = "none";
       overlay.style.pointerEvents = "none";
-      overlay.style.backgroundColor = "rgba(0, 0, 0, 0.5)";
+      overlay.style.backgroundColor = "rgba(0, 0, 0, 0.3)";
       overlay.style.cursor = "crosshair";
       document.documentElement.appendChild(overlay);
 
@@ -131,6 +133,7 @@
         document.documentElement.removeChild(overlay);
         document.documentElement.style.overflow = oldOverflowValue;
         document.documentElement.style.userSelect = oldUserSelectValue;
+        document.documentElement.style.pointerEvents = oldPointerEventsValue;
         document.documentElement.style.cursor = oldCursorValue;
         startX = null;
         startY = null;
@@ -266,7 +269,7 @@
       navigator.clipboard
         .writeText(apiResponse.full_text)
         .then((res) => {
-          showToast("Copied selected text to clipboard!", "success");
+          showToast("Selected text has been copied to clipboard!", "success");
         })
         .catch((err) => {
           showToast("Error copying to clipboard", "error");
