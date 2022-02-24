@@ -765,7 +765,7 @@
       renderer.clear();
       trackEvent("image", "get_base64_data_error", String(e));
       showToast(
-        "Failed to get image data. This usually happens when the host doesn't allow manipulation of image content.",
+        "Host does not allow manipulation of this image's content. Please use the Snip Tool instead!",
         "error"
       );
       return;
