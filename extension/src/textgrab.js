@@ -526,7 +526,7 @@
               trackEvent("ui_event", "selection_error", "iframe");
               cancelSelection();
               reject(
-                "Due to security measures, TextGrab cannot access content within an iframe HTML element. Please use the fallback option to select text."
+                "Due to security measures, TextGrab cannot access content within an iframe HTML element. Please use the Snip Tool to select text."
               );
             }
           });
@@ -765,7 +765,7 @@
       renderer.clear();
       trackEvent("image", "get_base64_data_error", String(e));
       showToast(
-        "Failed to get image data. This usually happens when the host doesn't allow manipulation of image content.",
+        "Host does not allow manipulation of this image's content. Please use the Snip Tool instead!",
         "error"
       );
       return;
