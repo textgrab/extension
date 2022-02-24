@@ -526,7 +526,7 @@
               trackEvent("ui_event", "selection_error", "iframe");
               cancelSelection();
               reject(
-                "Due to security measures, TextGrab cannot access content within an iframe HTML element. Please use the fallback option to select text."
+                "Due to security measures, TextGrab cannot access content within an iframe HTML element. Please use the Snip Tool to select text."
               );
             }
           });
