@@ -526,7 +526,7 @@
               trackEvent("ui_event", "selection_error", "iframe");
               cancelSelection();
               reject(
-                "Due to security measures, TextGrab cannot access content within an iframe HTML element."
+                "Due to security measures, TextGrab cannot access content within an iframe HTML element. Please use the fallback option to select text."
               );
             }
           });
@@ -637,7 +637,7 @@
           el.removeEventListener("click", handleElementClick);
         });
         window.removeEventListener("click", handleGlobalClick);
-        document.removeEventListener("keypress", handleKeyPress);
+        document.removeEventListener("keydown", handleKeyPress);
       }
     });
   }
@@ -838,7 +838,7 @@
       (onCopyAll = async () => {
         try {
           await navigator.clipboard.writeText(full_text);
-          showToast("TextGrabbed successfully!", "success");
+          showToast("Copied all text to clipboard!", "success");
           trackEvent("buttons", "menu", "copy_all");
         } catch (e) {
           showToast("Failed to copy text to clipboard", "error");
@@ -892,7 +892,7 @@
         console.log("Target", target);
         if (target == null) return;
       } catch (e) {
-        showToast(e, "error");
+        showToast(e, "error", 4000);
         return;
       }
 

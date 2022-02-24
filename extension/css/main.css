@@ -175,46 +175,32 @@ h3 {
   background-color: rgb(114, 108, 108);
 }
 
-#settings-btn {
+.popup-mini-btn {
   position: absolute;
   width: 20px;
   height: 20px;
   cursor: pointer;
   float: right;
   top: 25px;
+}
+.popup-mini-btn:hover {
+  opacity: 0.8;
+}
+
+#settings-btn {
   right: 20px;
 }
 
-#settings-btn:hover {
-  opacity: 0.8;
-}
-
 #help-btn {
-  position: absolute;
-  width: 20px;
-  height: 20px;
-  cursor: pointer;
-  float: right;
-  top: 25px;
   right: 47px;
 }
-#help-btn:hover {
-  opacity: 0.8;
+
+#fallback-btn {
+  right: 75px;
 }
 
 #coffee-btn {
-  position: absolute;
-  width: 20px;
-  height: 20px;
-  cursor: pointer;
-  float: right;
-  top: 25px;
-  right: 75px;
-  border: rgb(83, 78, 78);
-}
-
-#coffee-btn:hover {
-  opacity: 0.8;
+  right: 103px;
 }
 
 .dot {
