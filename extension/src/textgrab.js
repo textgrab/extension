@@ -115,7 +115,7 @@
         blockElement.style.margin = 0;
         blockElement.style.setProperty("z-index", "2147483636", "important");
 
-        document.body.appendChild(blockElement);
+        document.documentElement.appendChild(blockElement);
         let lineElement = null;
         let yOffset = 0;
         // blockElement.style.border = "1px solid red";
@@ -196,7 +196,7 @@
      */
     clear() {
       this.renderedBlocks.forEach((val) => {
-        document.body.removeChild(val);
+        document.documentElement.removeChild(val);
       });
       this.renderedBlocks = [];
       this.toggleSpinner(false);
@@ -209,7 +209,7 @@
      */
     toggleSpinner(show) {
       if (this.spinner != null) {
-        document.body.removeChild(this.spinner);
+        document.documentElement.removeChild(this.spinner);
         this.spinner = null;
       }
       if (show) {
@@ -222,7 +222,7 @@
         loader.style.setProperty("z-index", "2147483637", "important");
         loader.style.left = left + "px";
         loader.style.top = top + "px";
-        document.body.appendChild(loader);
+        document.documentElement.appendChild(loader);
         this.spinner = loader;
       }
     }
@@ -233,7 +233,7 @@
      */
     toggleMenu(show, onCopyAll = () => {}, onRecapture = () => {}) {
       if (this.menu != null) {
-        document.body.removeChild(this.menu);
+        document.documentElement.removeChild(this.menu);
         this.menu = null;
       }
       if (show) {
@@ -280,7 +280,7 @@
         menu.appendChild(clearBtn);
         menu.appendChild(copyAll);
         menu.appendChild(recaptureBtn);
-        document.body.appendChild(menu);
+        document.documentElement.appendChild(menu);
         this.menu = menu;
         this.dragElement(menu);
       }
@@ -717,12 +717,12 @@
     toast.id = "textgrab-snackbar";
     toast.className = `tg-show tg-${type}`;
     toast.innerText = message;
-    document.body.appendChild(toast);
+    document.documentElement.appendChild(toast);
 
     setTimeout(function () {
       toast.className = toast.className.replace("tg-show", "");
       setTimeout(function () {
-        document.body.removeChild(toast);
+        document.documentElement.removeChild(toast);
       }, 1000);
     }, duration);
   }
@@ -873,13 +873,13 @@
     ghost.id = "textgrab-ghost-1";
     ghost.style.position = "absolute";
     ghost.style.display = "none";
-    document.body.appendChild(ghost);
+    document.documentElement.appendChild(ghost);
 
     var ghostForMeasuringText = document.createElement("canvas");
     ghostForMeasuringText.id = "textgrab-ghost-2";
     ghostForMeasuringText.style.position = "absolute";
     ghostForMeasuringText.style.display = "none";
-    document.body.appendChild(ghostForMeasuringText);
+    document.documentElement.appendChild(ghostForMeasuringText);
 
     (async function () {
       // load user settings
@@ -927,8 +927,8 @@
         if (request.type == "cancelCapture") {
           try {
             renderer.clear();
-            document.body.removeChild(ghost);
-            document.body.removeChild(ghostForMeasuringText);
+            document.documentElement.removeChild(ghost);
+            document.documentElement.removeChild(ghostForMeasuringText);
             sendResponse({ success: true });
           } catch (e) {}
         }
