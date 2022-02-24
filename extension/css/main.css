@@ -204,8 +204,8 @@ h3 {
 }
 
 .dot {
-  min-height: 30px;
-  min-width: 30px;
+  min-height: 25px;
+  min-width: 25px;
   margin-left: 10px;
   background-color: rgb(255, 255, 255);
   border-radius: 50%;
@@ -256,7 +256,7 @@ h3 {
   align-items: center;
   gap: 1rem;
   color: white;
-  padding: 8px;
+  padding: 5px;
   border-radius: 25px;
   background-color: #363636;
   border: 0.2px solid #424242;

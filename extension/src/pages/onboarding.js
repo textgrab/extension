@@ -18,9 +18,6 @@ function loadDataPreference() {
 }
 
 document.addEventListener("DOMContentLoaded", async function () {
-  // document
-  //   .getElementById("get-started-btn")
-  //   .addEventListener("click", onGetStartedClick);
   let analyticsOptIn = document.getElementById("send-anonymous-check");
   let userDataPref = await loadDataPreference();
   analyticsOptIn.checked = userDataPref;

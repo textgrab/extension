@@ -15,6 +15,7 @@ function trackEvent(category, action, label, value = null) {
 
 const OPTIONS = {
   highlightColor: "rgba(0,0,0,0)",
+  analyticsOptIn: true,
 };
 
 // Where we will expose all the data we retrieve from storage.sync.
@@ -152,8 +153,14 @@ async function main() {
 
   const colorPreview = document.querySelector("#colour-preview");
   setUpColourPicker(colorPreview);
-
   setUpButtons();
+
+  let analyticsOptIn = document.getElementById("send-anonymous-check");
+  analyticsOptIn.checked = settingsCache.analyticsOptIn;
+  analyticsOptIn.addEventListener("change", function () {
+    let newVal = this.checked;
+    chrome.storage.sync.set({ analyticsOptIn: newVal });
+  });
 }
 
 document.addEventListener("DOMContentLoaded", main);
