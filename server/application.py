@@ -10,9 +10,7 @@ from flask_limiter.util import get_remote_address
 import shortuuid
 
 from api.GoogleAPI import GoogleVisionAPI
-from api.summarizer.GensimSummarizerAPI import GensimSummarizerAPI
-# from api.summarizer.BartSummarizerAPI import BartSummarizerAPI
-# from api.summarizer.T5SummarizerAPI import T5SummarizerAPI
+from api.summarizer.T5SummarizerAPI import T5SummarizerAPI
 
 
 app = Flask(__name__)
@@ -21,8 +19,7 @@ cors = CORS(app)
 limiter = Limiter(app, key_func=get_remote_address)
 
 visionAPI = GoogleVisionAPI()
-
-summarizeAPI = GensimSummarizerAPI()
+summarizeAPI = T5SummarizerAPI()
 
 
 @app.route("/", methods=["GET"])
