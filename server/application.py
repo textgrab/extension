@@ -89,10 +89,10 @@ def translate():
     data = request.get_json()
 
     text = data.get("textData")
-    targetLang = data.get("targetLang")
     sourceLang = data.get("sourceLang")
+    targetLang = data.get("targetLang")
 
-    resp = translateAPI.get_translation(text,targetLang,sourceLang)
+    resp = translateAPI.get_translation(text,sourceLang, targetLang)
 
     response = make_response(
         jsonify(
