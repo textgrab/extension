@@ -10,6 +10,7 @@ from flask_limiter.util import get_remote_address
 import shortuuid
 
 from api.GoogleAPI import GoogleVisionAPI
+from api.summarizer.T5SummarizerAPI import T5SummarizerAPI
 
 
 app = Flask(__name__)
@@ -18,6 +19,7 @@ cors = CORS(app)
 limiter = Limiter(app, key_func=get_remote_address)
 
 visionAPI = GoogleVisionAPI()
+summarizeAPI = T5SummarizerAPI()
 
 
 @app.route("/", methods=["GET"])
@@ -33,7 +35,6 @@ def test():
 @app.route("/new_session", methods=["GET"])
 @cross_origin()
 def new_session():
-
     return {"uuid": shortuuid.uuid()}
 
 
@@ -71,6 +72,28 @@ def process():
     )
     print(f"Processed {len(blocks)} blocks, {len(lines)} lines")
     return response
+
+
+@app.route("/summarize", methods=["POST"])
+@cross_origin()
+def summarize():
+    """
+    Payload:
+        textData: text string to summarize
+    """
+    data = request.get_json()
+
+    textData = data.get("textData")
+    summary = summarizeAPI.get_summary(textData)
+    response = make_response(
+        jsonify(
+            {
+                "summary": summary
+            }
+        )
+    )
+    return response
+
 
 
 if __name__ == "__main__":
