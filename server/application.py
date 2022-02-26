@@ -10,6 +10,7 @@ from flask_limiter.util import get_remote_address
 import shortuuid
 
 from api.GoogleAPI import GoogleVisionAPI
+from api.translation.GoogleTranslationAPI import GoogleTranslateAPI
 
 
 app = Flask(__name__)
@@ -18,6 +19,7 @@ cors = CORS(app)
 limiter = Limiter(app, key_func=get_remote_address)
 
 visionAPI = GoogleVisionAPI()
+translateAPI = GoogleTranslateAPI()
 
 
 @app.route("/", methods=["GET"])
@@ -72,6 +74,34 @@ def process():
     print(f"Processed {len(blocks)} blocks, {len(lines)} lines")
     return response
 
+
+@app.route("/translate", methods=["POST"])
+@cross_origin()
+@limiter.limit("10/minute")  # maximum of 10 requests per minute
+def translate():
+    """
+    Payload:
+        textData: input string to be translated
+        sourceLang: the language code of the input string (e.g. 'en', 'fr', 'es')
+        targetLang: the language code of the language to translate to
+    """
+    # Fetch payload
+    data = request.get_json()
+
+    text = data.get("textData")
+    targetLang = data.get("targetLang")
+    sourceLang = data.get("sourceLang")
+
+    resp = translateAPI.get_translation(text,targetLang,sourceLang)
+
+    response = make_response(
+        jsonify(
+            {
+                "translation": resp
+            }
+        )
+    )
+    return response
 
 if __name__ == "__main__":
     app.run(port=Config.PORT, debug=True)
