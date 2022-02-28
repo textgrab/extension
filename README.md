@@ -8,7 +8,7 @@
 
 3. Click the `Load Unpacked` and select the directory of the cloned TextGrab repo (should be called `extension`)
 
-The TextGrab extension should now be installed in your Chrome browser and should look like:
+The TextGrab extension should now be installed in your Chrome browser and should be visible in the installed extensions:
 
 <p align="center">
 <img width="404" alt="Screen Shot 2022-02-27 at 10 55 16 PM" src="https://user-images.githubusercontent.com/37857112/155921444-a0041614-e1e1-4aca-a8b3-361eb0c9c6de.png">
