@@ -1,5 +1,0 @@
-.vscode
-**.env**
-**gcp-creds.json**
-**.DS_STORE**
-extension/package.zip
