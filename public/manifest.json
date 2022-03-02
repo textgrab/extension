@@ -10,16 +10,16 @@
     "128": "icons/logo128.png"
   },
   "options_ui": {
-    "page": "src/options/options.html",
+    "page": "options.html",
     "open_in_tab": true
   },
   "background": {
-    "service_worker": "src/workers/content-worker.js"
+    "service_worker": "js/background.js"
   },
   "action": {
     "default_title": "TextGrab",
     "default_icon": "icons/logo48.png",
-    "default_popup": "src/browser_action/browser_action.html"
+    "default_popup": "popup.html"
   },
   "commands": {
     "textgrab": {

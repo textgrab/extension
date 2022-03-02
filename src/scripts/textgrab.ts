@@ -1,52 +1,56 @@
+import { loadUserPrefs, Options } from "../services/preferences";
+import { trackEvent } from "../services/analytics";
 {
-  const OPTIONS = {
-    highlightColor: "rgba(0,0,0,0)",
-  };
   class Rect {
-    constructor(x, y, width, height, value = null) {
-      this.x = x;
-      this.y = y;
-      this.width = width;
-      this.height = height;
-    }
+    constructor(
+      public x: number, 
+      public y: number, 
+      public width: number, 
+      public height: number
+    ) {}
   }
 
   class Line {
     /**
      * A line represents a rectangle with text in it.
-     * @param {Rect} rect
-     * @param {String} text
      */
-    constructor(rect, text = "") {
-      this.rect = rect;
-      this.text = text;
-    }
+    constructor(
+      public rect: Rect, 
+      public text = ""
+    ) {}
   }
 
   class Block {
     /**
      * A block is a block of related text. This sort of like a paragraph
      * in the sense it has multiple lines in close proximity.
-     * @param {Rect} rect
-     * @param {Array<Line>} lines
      */
-    constructor(rect, lines = []) {
-      this.rect = rect;
-      this.lines = lines;
-    }
+    constructor(
+      public rect: Rect, 
+      public lines: Line[] = []
+    ) {}
   }
 
   class Renderer {
+    readonly font: string = "arial";
+
+    private renderedBlocks: HTMLElement[];
+    private spinner: HTMLElement | null;
+    private menu: HTMLElement | null;
+    private target: HTMLElement;
+    private config: Options;
+
+    private ghostCanvas: HTMLCanvasElement;
+
     /**
      * @param {HTMLElement} target the element to display the text on
      * @param {HTMLCanvasElement} canvas the canvas used to measure the text
      */
-    constructor(target, canvas, config) {
+    constructor(target: HTMLElement, canvas: HTMLCanvasElement, config: Options) {
       this.renderedBlocks = [];
       this.spinner = null;
       this.menu = null;
       this.target = target;
-      this.font = "arial";
       this.config = config;
 
       // used for measuring text (cannot use the same as video canvas)
@@ -56,9 +60,8 @@
     /**
      * Calculate the offset of the target element in order
      * to position the text overlay at the correct position
-     * @returns {Object} left and top offsets of the target element
      */
-    getTargetOffsets() {
+    getTargetOffsets(): {left: number, top: number} {
       let leftOffset =
         this.target.getBoundingClientRect().left +
         (window.pageXOffset || document.documentElement.scrollLeft);
@@ -75,7 +78,7 @@
      * @param {Number} size the font size in pixels of the text
      * @returns the width of the text in pixels (can be float)
      */
-    getTextWidth(text, size) {
+    getTextWidth(text: string, size: number) {
       // Computes the width of the text in pixels
       var context = this.ghostCanvas.getContext("2d");
       if (context == null) {
@@ -86,11 +89,7 @@
       return metrics.width;
     }
 
-    /**
-     *
-     * @param {Array<Block>} blocks
-     */
-    showBlocks(blocks) {
+    showBlocks(blocks: Block[]) {
       this.clear();
       const { left: leftOffset, top: topOffset } = this.getTargetOffsets();
       let error = 0;
@@ -112,7 +111,7 @@
         // and the border of the block to make selection easier
         blockElement.style.paddingRight = block.rect.width / 10 + "px";
         blockElement.style.paddingBottom = block.rect.height / 10 + "px";
-        blockElement.style.margin = 0;
+        blockElement.style.margin = "0px";
         blockElement.style.setProperty("z-index", "2147483636", "important");
 
         document.documentElement.appendChild(blockElement);
@@ -129,6 +128,8 @@
                 block.lines[i - 1].rect.height;
 
           lineElement = this.createLineInBlock(line, yOffset);
+          if (!lineElement) continue;
+
           error += Math.abs(
             line.rect.width - lineElement.getBoundingClientRect().width
           );
@@ -149,13 +150,10 @@
     }
 
     /**
-     *
-     * @param {HTMLElement} parentElement
-     * @param {Line} line
-     * @returns {HTMLElement}
+     * Creates a line element in the block
      */
-    createLineInBlock(line, offsetY) {
-      if (!line.text || line.text.length == 0) return;
+    createLineInBlock(line: Line, offsetY: number): HTMLElement | null {
+      if (!line.text || line.text.length == 0) return null;
       let rect = line.rect;
 
       let textWidth = this.getTextWidth(line.text, rect.height);
@@ -172,8 +170,8 @@
 
       text.style.left = rect.x + "px";
       text.style.top = offsetY + "px";
-      text.style.padding = 0;
-      text.style.margin = 0;
+      text.style.padding = "0px";
+      text.style.margin = "0px";
       text.style.whiteSpace = "nowrap";
       text.style.color = "transparent";
 
@@ -207,7 +205,7 @@
      * Shows or hides the spinner on the element
      * @param {Boolean} show whether to show or hide the spinner
      */
-    toggleSpinner(show) {
+    toggleSpinner(show: boolean) {
       if (this.spinner != null) {
         document.documentElement.removeChild(this.spinner);
         this.spinner = null;
@@ -231,7 +229,7 @@
      * Shows or hides the clear button
      * @param {Boolean} show whether to show or hide the clear button
      */
-    toggleMenu(show, onCopyAll = () => {}, onRecapture = () => {}) {
+    toggleMenu(show: boolean, onCopyAll = () => {}, onRecapture = () => {}) {
       if (this.menu != null) {
         document.documentElement.removeChild(this.menu);
         this.menu = null;
@@ -286,7 +284,7 @@
       }
     }
 
-    dragElement(elmnt) {
+    dragElement(elmnt: HTMLElement) {
       /* https://www.w3schools.com/howto/howto_js_draggable.asp */
 
       var pos1X = 0,
@@ -297,7 +295,7 @@
       elmnt.onmousedown = dragMouseDown;
       let localTarget = this.target;
 
-      function dragMouseDown(e) {
+      function dragMouseDown(e: MouseEvent) {
         e = e || window.event;
         e.preventDefault();
         // get the mouse cursor position at startup:
@@ -308,7 +306,7 @@
         document.onmousemove = elementDrag;
       }
 
-      function elementDrag(e) {
+      function elementDrag(e: MouseEvent) {
         e = e || window.event;
         e.preventDefault();
         // calculate the new cursor position:
@@ -351,23 +349,24 @@
     }
   }
 
-  class Video {
-    constructor(htmlElement, ghostCanvas) {
-      this.video = htmlElement;
-      this.ghostCanvas = ghostCanvas;
-    }
+  abstract class Target<T extends HTMLElement> {
+    constructor(
+      protected element: T,
+      private ghostCanvas: HTMLCanvasElement,
+    ) {}
+    
+    protected abstract getImageBitmap(): Promise<ImageBitmap>;
 
-    async getBase64Data() {
-      // to allow for manipulation of videos with CORS restrictions
-      this.video.crossOrigin = "anonymous";
-      let stream = this.video.captureStream();
-      let imageCapture = new ImageCapture(stream.getVideoTracks()[0]);
-      let frame = await imageCapture.grabFrame();
+    public async getBase64Data(): Promise<{data: string, width: number, height: number}> {
+      const imageBitMap = await this.getImageBitmap();
 
       // set up off screen canvas
       var context = this.ghostCanvas.getContext("bitmaprenderer");
-      const [frameWidth, frameHeight] = [frame.width, frame.height];
-      context.transferFromImageBitmap(frame);
+      if (!context) {
+        throw new Error("Could not get context");
+      }
+      const [frameWidth, frameHeight] = [imageBitMap.width, imageBitMap.height];
+      context.transferFromImageBitmap(imageBitMap);
 
       return {
         data: this.ghostCanvas.toDataURL(),
@@ -376,78 +375,53 @@
       };
     }
 
-    getHTMLElement() {
-      return this.video;
+    public getHTMLElement(): T {
+      return this.element;
     }
   }
 
-  class Image {
-    constructor(htmlElement, ghostCanvas) {
-      this.image = htmlElement;
-      this.ghostCanvas = ghostCanvas;
+  class Video extends Target<HTMLVideoElement> {
+    constructor(videoElement: HTMLVideoElement, ghostCanvas: HTMLCanvasElement) {
+      super(videoElement, ghostCanvas);
     }
-    async getBase64Data() {
-      // to allow for manipulation of images with CORS restrictions
-      this.image.crossOrigin = "anonymous";
-      let frame = await new Promise((resolve, reject) => {
-        this.image.onload = async () => {
-          let bitmap = await createImageBitmap(this.image);
+    getImageBitmap(): Promise<ImageBitmap> {
+      this.element.crossOrigin = "anonymous";
+      return createImageBitmap(this.element);
+    }
+  }
+
+  class Image extends Target<HTMLImageElement> {
+    constructor(imgElement: HTMLImageElement, ghostCanvas: HTMLCanvasElement) {
+      super(imgElement, ghostCanvas);
+    }
+    async getImageBitmap(): Promise<ImageBitmap> {
+      this.element.crossOrigin = "anonymous";
+      let frame = await new Promise<ImageBitmap>((resolve, reject) => {
+        this.element.onload = async () => {
+          let bitmap = await createImageBitmap(this.element);
           resolve(bitmap);
         };
-        this.image.onerror = (e) =>
+        this.element.onerror = (e) =>
           reject(`Error retrieving image: ${String(e)}`);
       });
-      var context = this.ghostCanvas.getContext("bitmaprenderer");
-      const [frameWidth, frameHeight] = [frame.width, frame.height];
-      context.transferFromImageBitmap(frame);
-      return {
-        data: this.ghostCanvas.toDataURL(),
-        width: frameWidth,
-        height: frameHeight,
-      };
-    }
-
-    getHTMLElement() {
-      return this.image;
+      return frame
     }
   }
 
-  class Canvas {
-    constructor(htmlElement, ghostCanvas) {
-      this.canvas = htmlElement;
-      this.ghostCanvas = ghostCanvas;
+  class Canvas extends Target<HTMLCanvasElement> {
+    constructor(canvasElement: HTMLCanvasElement, ghostCanvas: HTMLCanvasElement) {
+      super(canvasElement, ghostCanvas);
     }
-    async getBase64Data() {
-      return {
-        data: this.canvas.toDataURL(),
-        width: this.canvas.width,
-        height: this.canvas.height,
-      };
+    async getImageBitmap(): Promise<ImageBitmap> {
+      return createImageBitmap(this.element);
     }
-
-    getHTMLElement() {
-      return this.canvas;
-    }
-  }
-
-  function trackEvent(category, action, label, value = null) {
-    const data = {
-      type: "event",
-      category,
-      event: action,
-      label,
-    };
-    if (value != null) {
-      data["value"] = value;
-    }
-    chrome.runtime.sendMessage(data);
   }
 
   /**
    * @param {str} data Image data to send to the API
    * @returns JSON object of response of API /process
    */
-  async function callGetTextBlocksAPI(data) {
+  async function callGetTextBlocksAPI(data: string) {
     const startTime = performance.now();
     // to remove the 22 characters before the image data
     data = data.substr(22);
@@ -475,7 +449,7 @@
    * @param {any} rect - bounding box of the HTML element
    * @returns
    */
-  function checkEventInRect(e, rect) {
+  function checkEventInRect(e: MouseEvent, rect: DOMRect) {
     return (
       e.x >= rect.left &&
       e.x <= rect.right &&
@@ -485,7 +459,7 @@
   }
 
   class APIError extends Error {
-    constructor(message) {
+    constructor(message: string) {
       super(message);
       this.name = "APIError";
     }
@@ -498,8 +472,8 @@
    * @param {HTMLElement} ghostElement : The ghost canvas used to get the base64 version of an image
    * @returns {Promise<Video | Image | Canvas>}
    */
-  function getTarget(ghostElement) {
-    return new Promise(function (resolve, reject) {
+  function getTarget(ghostElement: HTMLCanvasElement): Promise<Target<HTMLElement> | null> {
+    return new Promise<Target<HTMLElement> | null>(function (resolve, reject) {
       // Unique ID for the className.
       var MOUSE_VISITED_CLASSNAME = "crx_mouse_visited";
       window.focus();
@@ -522,7 +496,7 @@
         "blur",
         () => {
           setTimeout(() => {
-            if (document.activeElement.tagName === "IFRAME") {
+            if (document.activeElement?.tagName === "IFRAME") {
               trackEvent("ui_event", "selection_error", "iframe");
               cancelSelection();
               reject(
@@ -538,7 +512,7 @@
        * We need to cancel selection when ESC is pressed
        * @param {Event} e
        */
-      function handleKeyPress(e) {
+      function handleKeyPress(e: KeyboardEvent) {
         if (e.key == "Escape" || e.key == "Esc" || e.keyCode == 27) {
           trackEvent("ui_event", "cancel_selection", "ESC");
           cancelSelection();
@@ -551,11 +525,12 @@
        * elements.
        * @param {Event} e
        */
-      function handleElementClick(e) {
+      function handleElementClick(e: Event) {
         e.preventDefault();
         e.stopPropagation();
         cancelSelection();
-        let res = getTargetFromChildren(e.target, ghostElement);
+        let res = null;
+        if (e.target) res = getTargetFromChildren(e.target as Element, ghostElement);
         if (res == null) {
           trackEvent("ui_event", "cancel_selection", "window_click_target");
           reject("Please select an image or video element");
@@ -574,7 +549,7 @@
        * @param {Event} e
        * @returns
        */
-      function handleGlobalClick(e) {
+      function handleGlobalClick(e: MouseEvent) {
         e.preventDefault();
         cancelSelection();
         // First check the elements that we know are valid
@@ -649,20 +624,25 @@
    * @param {Canvas} ghostElement used to create {Image} or {Video} instances
    * @returns
    */
-  function getTargetFromParents(candidates, ghostElement) {
+  function getTargetFromParents(
+    candidates: Element[], 
+    ghostElement: HTMLCanvasElement
+  ): Target<HTMLElement> | null {
+
     if (!candidates || candidates.length == 0) return null;
-    let overflow = [];
-    for (i = 0; i < candidates.length; i++) {
+    let overflow: HTMLElement[] = [];
+    for (let i = 0; i < candidates.length; i++) {
       switch (candidates[i].nodeName) {
         case "VIDEO":
-          return new Video(candidates[i], ghostElement);
+          return new Video(candidates[i] as HTMLVideoElement, ghostElement);
         case "IMAGE":
-          return new Image(candidates[i], ghostElement);
+          return new Image(candidates[i] as HTMLImageElement, ghostElement);
         case "CANVAS":
-          return new Canvas(candidates[i], ghostElement);
+          return new Canvas(candidates[i] as HTMLCanvasElement, ghostElement);
         default:
           if (candidates[i].shadowRoot) {
             overflow = overflow.concat(
+              // @ts-ignore
               Array.from(candidates[i].shadowRoot.children)
             );
           }
@@ -676,18 +656,17 @@
    * Recursive DFS search for any valid node that is a video or image element
    * @param {HTMLElement} root
    * @param {Canvas} ghostElement used to create {Image} or {Video} instances
-   * TODO: Narrow search by checking if the user's click is within the bounds of root
    * @returns {Video | Image | Canvas | null}
    */
-  function getTargetFromChildren(root, ghostElement) {
+  function getTargetFromChildren(root: Element, ghostElement: HTMLCanvasElement): Target<HTMLElement> | null {
     if (root == null) return null;
     switch (root.nodeName) {
       case "VIDEO":
-        return new Video(root, ghostElement);
+        return new Video(root as HTMLVideoElement, ghostElement);
       case "IMG":
-        return new Image(root, ghostElement);
+        return new Image(root as HTMLImageElement, ghostElement);
       case "CANVAS":
-        return new Canvas(root, ghostElement);
+        return new Canvas(root as HTMLCanvasElement, ghostElement);
       default: {
         var children = Array.from(root.children);
         // On D2L, video is nested within shadowRoot for some reason
@@ -709,10 +688,10 @@
 
   /**
    *
-   * @param {String} message to display in toast
-   * @param {String} type one of error, info, success. Default is info
+   * @param message to display in toast
+   * @param type one of error, info, success. Default is info
    */
-  function showToast(message, type = "info", duration = 3000) {
+  function showToast(message: string, type = "info", duration = 3000) {
     var toast = document.createElement("div");
     toast.id = "textgrab-snackbar";
     toast.className = `tg-show tg-${type}`;
@@ -728,29 +707,14 @@
   }
 
   /**
-   * Retrieves user's settings from chrome storage
-   * @returns {Object} Preferences object
-   */
-  function loadUserSettings() {
-    return new Promise((resolve, reject) => {
-      chrome.storage.sync.get(OPTIONS, function (data) {
-        if (chrome.runtime.lastError) {
-          return reject(chrome.runtime.lastError);
-        }
-        resolve(data);
-      });
-    });
-  }
-
-  /**
    * Does the heavy-lifting of getting the text from the element
    * by hitting the API, and converting its response into {Block}s
    * @param {HTMLElement} target
    * @param {Renderer} renderer
    * @returns
    */
-  async function getTextBlocksForTarget(target, renderer) {
-    let response, image;
+  async function getTextBlocksForTarget(target: Target<HTMLElement>, renderer: Renderer) {
+    let response, image: { data: string; width: number; height: number; };
 
     // get the image / video data from the target
     try {
@@ -790,9 +754,9 @@
       return;
     }
 
-    const blocks = [];
+    const blocks: Block[] = [];
     let numRects = 0;
-    response.blocks.forEach((block) => {
+    response.blocks.forEach((block: any) => {
       const blockBoundingBox = block.bounding_box;
       const targetRect = target.getHTMLElement().getBoundingClientRect();
       const wScale = targetRect.width / image.width;
@@ -805,7 +769,7 @@
         blockBoundingBox.height * hScale
       );
 
-      const lines = block.lines.map((line) => {
+      const lines = block.lines.map((line: any) => {
         // calculate position relative to the block
         const line_rect = new Rect(
           (line.bounding_box.x - blockBoundingBox.x) * wScale,
@@ -827,15 +791,12 @@
   /**
    * Shows the menu on the target element.
    * TODO: Remove full_text and implement cleaner solution
-   * @param {Image | Video | Canvas} target
-   * @param {Renderer} renderer
-   * @param {String} full_text
    */
-  function showMenu(target, renderer, full_text) {
+  function showMenu(target: Target<HTMLElement>, renderer: Renderer, full_text: string) {
     const startTime = performance.now();
     renderer.toggleMenu(
       true,
-      (onCopyAll = async () => {
+      async () => {
         try {
           await navigator.clipboard.writeText(full_text);
           showToast("Copied all text to clipboard!", "success");
@@ -843,8 +804,8 @@
         } catch (e) {
           showToast("Failed to copy text to clipboard", "error");
         }
-      }),
-      (onRecapture = async () => {
+      },
+      async () => {
         renderer.clear();
         renderer.toggleSpinner(true);
         const recaptureDelay = performance.now() - startTime;
@@ -863,8 +824,8 @@
         renderer.showBlocks(blocks);
         trackEvent("buttons", "menu", "recapture");
         showMenu(target, renderer, full_text);
-      })
-    );
+      }
+    )
   }
 
   function main() {
@@ -883,7 +844,7 @@
 
     (async function () {
       // load user settings
-      let settings = await loadUserSettings();
+      let settings = await loadUserPrefs();
 
       // get the video / image target if it exists
       let target;
@@ -892,7 +853,7 @@
         console.log("Target", target);
         if (target == null) return;
       } catch (e) {
-        showToast(e, "error", 4000);
+        showToast(String(e), "error", 4000);
         return;
       }
 
@@ -935,5 +896,5 @@
       });
     })();
   }
+  main();
 }
-main();

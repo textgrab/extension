@@ -1,22 +1,11 @@
+import { trackEvent } from '../services/analytics'
+
 {
   class APIError extends Error {
-    constructor(message) {
+    constructor(message: string) {
       super(message);
       this.name = "APIError";
     }
-  }
-
-  function trackEvent(category, action, label, value = null) {
-    const data = {
-      type: "event",
-      category,
-      event: action,
-      label,
-    };
-    if (value != null) {
-      data["value"] = value;
-    }
-    chrome.runtime.sendMessage(data);
   }
 
   /**
@@ -24,7 +13,7 @@
    * @param {String} message to display in toast
    * @param {String} type one of error, info, success. Default is info
    */
-  function showToast(message, type = "info", duration = 3000) {
+  function showToast(message: string, type = "info", duration = 3000) {
     var toast = document.createElement("div");
     toast.id = "textgrab-snackbar";
     toast.className = `tg-show tg-${type}`;
@@ -39,11 +28,13 @@
     }, duration);
   }
 
-  function getSelection() {
-    return new Promise((resolve, reject) => {
-      let [startX, startY] = [null, null];
-      let overlay = null;
-      let divElement = null;
+  type Selection = { x: number; y: number; width: number; height: number, parentWidth: number, parentHeight: number }
+
+  function getSelection(): Promise<Selection | null> {
+    return new Promise<Selection | null>((resolve, reject) => {
+      let [startX, startY]: (number | null)[] = [null, null];
+      let overlay: HTMLElement | null = null;
+      let divElement: HTMLElement | null = null;
       let oldOverflowValue = document.documentElement.style.overflow;
       let oldUserSelectValue = document.documentElement.style.userSelect;
       let oldPointerEventsValue = document.documentElement.style.pointerEvents;
@@ -70,7 +61,7 @@
       overlay.style.cursor = "crosshair";
       document.documentElement.appendChild(overlay);
 
-      const onMouseDown = (e) => {
+      const onMouseDown = (e: MouseEvent) => {
         startX = e.x;
         startY = e.y;
 
@@ -84,10 +75,10 @@
         divElement.style.userSelect = "none";
         divElement.style.pointerEvents = "none";
         divElement.style.backgroundColor = "rgba(112, 112, 112, 0.3)";
-        overlay.appendChild(divElement);
+        overlay?.appendChild(divElement);
       };
-      const onMouseMove = (e) => {
-        if (divElement == null) {
+      const onMouseMove = (e: MouseEvent) => {
+        if (divElement == null || startX == null || startY == null) {
           return;
         }
         const newX = e.x;
@@ -107,7 +98,7 @@
         divElement.style.width = Math.abs(newX - startX) + "px";
         divElement.style.height = Math.abs(newY - startY) + "px";
       };
-      const onMouseUp = (e) => {
+      const onMouseUp = () => {
         if (divElement == null) {
           return;
         }
@@ -141,7 +132,7 @@
         divElement = null;
       };
 
-      const handleKeyPress = (e) => {
+      const handleKeyPress = (e: KeyboardEvent) => {
         if (e.key == "Escape" || e.key == "Esc" || e.keyCode == 27) {
           trackEvent("ui_event", "cancel_selection", "ESC");
           cancelSelection();
@@ -156,19 +147,23 @@
     });
   }
 
-  function crop(screenshotURL, selection) {
-    return new Promise((resolve, reject) => {
+  function crop(screenshotURL: string, selection: Selection): Promise<string> {
+    return new Promise<string>((resolve, reject) => {
       const canvas = document.createElement("canvas");
       // scaled down
       canvas.width = selection.width;
       canvas.height = selection.height;
 
       let ctx = canvas.getContext("2d");
+      if (ctx == null) {
+        reject("Could not get canvas context");
+        return;
+      }
       const image = new Image();
       image.onload = async () => {
         const scaleX = image.width / selection.parentWidth;
         const scaleY = image.height / selection.parentHeight;
-        ctx.drawImage(
+        ctx?.drawImage(
           image,
           selection.x * scaleX,
           selection.y * scaleY,
@@ -192,7 +187,7 @@
    * @param {str} data Image data to send to the API
    * @returns JSON object of response of API /process
    */
-  async function callGetTextBlocksAPI(data) {
+  async function callGetTextBlocksAPI(data: string) {
     const startTime = performance.now();
     // to remove the 22 characters before the image data
     data = data.substr(22);
@@ -226,23 +221,23 @@
       }
 
       // delay 100 ms to let the selection disappear
-      await new Promise((resolve, reject) =>
+      await new Promise<void>((resolve, reject) =>
         setTimeout(() => {
           resolve();
         }, 100)
       );
 
-      const screenshotURL = await new Promise((resolve, reject) => {
+      const screenshotURL = await new Promise<string>((resolve, reject) => {
         chrome.runtime.sendMessage(
           {
             type: "getTabScreenshot",
           },
-          (callback = (response) => {
+          (response) => {
             if (chrome.runtime.lastError) {
               reject(chrome.runtime.lastError);
             }
             resolve(response.screenshot);
-          })
+          }
         );
       });
 
@@ -276,5 +271,6 @@
         });
     })();
   }
+  main();
 }
-main();
+
