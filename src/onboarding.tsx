@@ -82,6 +82,7 @@ const OnboardingPage = () => {
             description={slide.description}
             image={slide.image}
             index={index}
+            key={index}
           />
         ))}
       </Row>
@@ -91,9 +92,10 @@ const OnboardingPage = () => {
           value=""
           id="send-anonymous-check"
           checked={analyticsChecked}
-          onClick={(e) => {
+          onChange={(e) => {
             let newVal = (e.target as HTMLInputElement).checked;
             chrome.storage.sync.set({ analyticsOptIn: newVal });
+            setAnalyticsChecked(newVal);
           }}
         />
         <label className="form-check-label" htmlFor="send-anonymous-check">

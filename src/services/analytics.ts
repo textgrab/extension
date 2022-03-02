@@ -25,7 +25,6 @@ export class AnalyticsService {
      * @param {Object} data Any additional data to be sent to Google Analytics
      */
     track(category: string, event: string, label: string, value?: string, data: StringMap = {}) : void {
-      this.enabled = false;
       if (!this.enabled) {
         return;
       }
