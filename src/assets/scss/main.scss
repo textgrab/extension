@@ -390,3 +390,9 @@ input[type="checkbox"]:disabled {
   opacity: 0.84;
   cursor: not-allowed;
 }
+
+.form-check-label {
+  color: lightgray;
+  margin-left: 0.5rem;
+  margin-top: 15px;
+}
