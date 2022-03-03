@@ -68,7 +68,12 @@ const OptionsPage = () => {
   };
 
   const handleColourChange = (color: ColorResult) => {
-    setNewSettings({ ...newSettings, highlightColor: color.hex });
+    setNewSettings({
+      ...newSettings,
+      highlightColor: `rgba(${color.rgb.r}, ${color.rgb.g}, ${color.rgb.b}, ${
+        color.rgb.a || ""
+      })`,
+    });
     onUpdateNewSettings();
   };
 
