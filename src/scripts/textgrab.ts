@@ -1,9 +1,10 @@
-import { loadUserPrefs, Options } from "../services/preferences";
+import { loadUserPrefs } from "../services/preferences";
 import { trackEvent } from "../services/analytics";
 import Renderer, { Target, Video, Image, Canvas } from "./renderer";
 import { Rect, Line, Block } from "./models";
 import { APIError } from "./errors";
 import { callGetTextBlocksAPI } from "../services/api";
+import { showToast } from "./ui/toast";
 
 /**
  * Checks whether an event occurred within a given element
@@ -239,26 +240,6 @@ function getTargetFromChildren(root: Element, ghostElement: HTMLCanvasElement): 
       return null;
     }
   }
-}
-
-/**
- *
- * @param message to display in toast
- * @param type one of error, info, success. Default is info
- */
-function showToast(message: string, type = "info", duration = 3000) {
-  var toast = document.createElement("div");
-  toast.id = "textgrab-snackbar";
-  toast.className = `tg-show tg-${type}`;
-  toast.innerText = message;
-  document.documentElement.appendChild(toast);
-
-  setTimeout(function () {
-    toast.className = toast.className.replace("tg-show", "");
-    setTimeout(function () {
-      document.documentElement.removeChild(toast);
-    }, 1000);
-  }, duration);
 }
 
 /**

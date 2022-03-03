@@ -1,25 +1,7 @@
 import { trackEvent } from '../services/analytics'
 import { APIError } from "./errors"
 import { callGetTextBlocksAPI } from '../services/api'
-/**
- *
- * @param {String} message to display in toast
- * @param {String} type one of error, info, success. Default is info
- */
-function showToast(message: string, type = "info", duration = 3000) {
-  var toast = document.createElement("div");
-  toast.id = "textgrab-snackbar";
-  toast.className = `tg-show tg-${type}`;
-  toast.innerText = message;
-  document.body.appendChild(toast);
-
-  setTimeout(function () {
-    toast.className = toast.className.replace("tg-show", "");
-    setTimeout(function () {
-      document.body.removeChild(toast);
-    }, 1000);
-  }, duration);
-}
+import { showToast } from './ui/toast'
 
 type Selection = { x: number; y: number; width: number; height: number, parentWidth: number, parentHeight: number }
 
