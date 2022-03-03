@@ -25,12 +25,16 @@ jobs:
       uses: actions/setup-node@v1
       with:
         node-version: ${{ matrix.node-version }}
-    - run: |
-           npm ci
-           npm run build
-           npm test
+    - run: npm ci
+    - run: npm run build
+      name: Build
+    - run: npm test
+      name: Test
+    - run: npm run lint
+      name: Lint
     - run: cd dist && zip -r ../extension.zip * && cd .. 
-    - name: Upload Artifacts
+      name: Package Extension
+    - name: Upload to Artifacts
       if: ${{ github.event_name == 'pull_request' }}
       uses: gavv/pull-request-artifacts@v1.0.0
       with:

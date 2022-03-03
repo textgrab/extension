@@ -1,19 +1,26 @@
-import { trackEvent } from '../services/analytics'
-import { APIError } from "./errors"
-import { callGetTextBlocksAPI } from '../services/api'
-import { showToast } from './ui/toast'
+import { trackEvent } from "../services/analytics";
+import { APIError } from "./errors";
+import { callGetTextBlocksAPI } from "../services/api";
+import { showToast } from "./ui/toast";
 
-type Selection = { x: number; y: number; width: number; height: number, parentWidth: number, parentHeight: number }
+type Selection = {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  parentWidth: number;
+  parentHeight: number;
+};
 
 function getSelection(): Promise<Selection | null> {
-  return new Promise<Selection | null>((resolve, reject) => {
+  return new Promise<Selection | null>((resolve) => {
     let [startX, startY]: (number | null)[] = [null, null];
     let overlay: HTMLElement | null = null;
     let divElement: HTMLElement | null = null;
-    let oldOverflowValue = document.documentElement.style.overflow;
-    let oldUserSelectValue = document.documentElement.style.userSelect;
-    let oldPointerEventsValue = document.documentElement.style.pointerEvents;
-    let oldCursorValue = document.documentElement.style.cursor;
+    const oldOverflowValue = document.documentElement.style.overflow;
+    const oldUserSelectValue = document.documentElement.style.userSelect;
+    const oldPointerEventsValue = document.documentElement.style.pointerEvents;
+    const oldCursorValue = document.documentElement.style.cursor;
 
     document.documentElement.style.overflow = "hidden";
     document.documentElement.style.userSelect = "none";
@@ -77,7 +84,7 @@ function getSelection(): Promise<Selection | null> {
       if (divElement == null) {
         return;
       }
-      let result = {
+      const result = {
         x: divElement.offsetLeft,
         y: divElement.offsetTop,
         width: divElement.offsetWidth,
@@ -129,7 +136,7 @@ function crop(screenshotURL: string, selection: Selection): Promise<string> {
     canvas.width = selection.width;
     canvas.height = selection.height;
 
-    let ctx = canvas.getContext("2d");
+    const ctx = canvas.getContext("2d");
     if (ctx == null) {
       reject("Could not get canvas context");
       return;
@@ -158,7 +165,6 @@ function crop(screenshotURL: string, selection: Selection): Promise<string> {
   });
 }
 
-
 function main() {
   (async () => {
     const selection = await getSelection();
@@ -171,7 +177,7 @@ function main() {
     }
 
     // delay 100 ms to let the selection disappear
-    await new Promise<void>((resolve, reject) =>
+    await new Promise<void>((resolve) =>
       setTimeout(() => {
         resolve();
       }, 100)
@@ -213,14 +219,12 @@ function main() {
     console.log(apiResponse.full_text);
     navigator.clipboard
       .writeText(apiResponse.full_text)
-      .then((res) => {
+      .then(() => {
         showToast("Selected text has been copied to clipboard!", "success");
       })
-      .catch((err) => {
+      .catch(() => {
         showToast("Error copying to clipboard", "error");
       });
   })();
 }
 main();
-
-

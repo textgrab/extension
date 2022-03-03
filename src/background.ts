@@ -1,7 +1,6 @@
 import { AnalyticsService } from "./services/analytics";
 import { loadUserPrefs, Options, saveOptions } from "./services/preferences";
 import { createUUID } from "./utils/uuid";
-const TRACKING_ID = "UA-217904698-1";
 
 async function getClientInfo() {
   const data = await loadUserPrefs();
@@ -15,8 +14,8 @@ async function getClientInfo() {
 }
 
 async function getCurrentTab(): Promise<chrome.tabs.Tab> {
-  let queryOptions = { active: true, currentWindow: true };
-  let [tab] = await chrome.tabs.query(queryOptions);
+  const queryOptions = { active: true, currentWindow: true };
+  const [tab] = await chrome.tabs.query(queryOptions);
   return tab;
 }
 
@@ -29,7 +28,7 @@ const initialize = getClientInfo().then((data: Options) => {
   // within the client.
   analytics = new AnalyticsService(
     {
-      tracking_id: TRACKING_ID,
+      tracking_id: process.env.ANALYTICS_ID || "",
       client_id: clientInfo.USER_UUID,
     },
     chrome.runtime.getManifest(),
@@ -70,12 +69,12 @@ async function trackEvent({
 
 // inject the text capture script
 async function injectScript(file = "js/textgrab.js") {
-  let tab = await getCurrentTab();
+  const tab = await getCurrentTab();
   if (!tab.id) return;
 
   const tabId = tab.id;
 
-  chrome.tabs.sendMessage(tabId, { type: "cancelCapture" }, (res) => {
+  chrome.tabs.sendMessage(tabId, { type: "cancelCapture" }, () => {
     if (chrome.runtime.lastError) {
       // expected on first run. This check silences the error.
     }
@@ -100,12 +99,12 @@ async function handleFallbackCapture() {
   injectScript("js/fallback.js");
 }
 
-async function handleTabScreenshot(req: any) {
-  let screenshot = await chrome.tabs.captureVisibleTab({ format: "png" });
+async function handleTabScreenshot() {
+  const screenshot = await chrome.tabs.captureVisibleTab({ format: "png" });
   return { message: "Success", screenshot: screenshot };
 }
 
-async function handleCaptureButton(req: any) {
+async function handleCaptureButton() {
   await injectScript();
   trackEvent({
     category: "buttons",
@@ -115,7 +114,7 @@ async function handleCaptureButton(req: any) {
   return { message: "Capturing..." };
 }
 
-type ReqHandler = (req: any) => Promise<any>;
+type ReqHandler = (req: any) => Promise<{ message: string } | { error: string } | void>;
 
 const eventHandlers: { [key: string]: ReqHandler } = {
   captureBtn: handleCaptureButton,
@@ -169,7 +168,7 @@ chrome.commands.onCommand.addListener(function (command) {
 });
 
 chrome.runtime.onInstalled.addListener(async function (details) {
-  let thisVersion = chrome.runtime.getManifest().version;
+  const thisVersion = chrome.runtime.getManifest().version;
   switch (details.reason) {
     case "install":
       getClientInfo();
@@ -179,9 +178,9 @@ chrome.runtime.onInstalled.addListener(async function (details) {
         label: thisVersion,
       });
       chrome.tabs.create(
-        { url: chrome.runtime.getURL("onboarding.html") },
-        function (tab) {}
+        { url: chrome.runtime.getURL("onboarding.html") }
       );
+      break;
     case "update":
       trackEvent({
         category: "app_updates",

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, ChangeEvent } from "react";
+import React, { useState, useEffect } from "react";
 import ReactDOM from "react-dom";
 import { ChromePicker, ColorResult } from "react-color";
 import { trackEvent } from "./services/analytics";
@@ -30,10 +30,9 @@ const OptionsPage = () => {
 
   function onUpdateNewSettings() {
     function isSettingsEqual() {
-      for (var propertyName in settingsCache) {
+      for (const propertyName in settingsCache) {
         if (
-          settingsCache.hasOwnProperty(propertyName) &&
-          // @ts-ignore
+          Object.prototype.hasOwnProperty.call(settingsCache, propertyName) &&
           settingsCache[propertyName] !== newSettings[propertyName]
         ) {
           return false;
@@ -59,12 +58,12 @@ const OptionsPage = () => {
 
   const onSaveClick = async () => {
     trackEvent("buttons", "options", "save_settings_btn");
-    if (newSettings.hasOwnProperty("highlightColor")) {
+    if (Object.prototype.hasOwnProperty.call(newSettings, "highlightColor")) {
       trackEvent("options", "highlightColor", newSettings.highlightColor);
     }
     setSettingsCache({ ...newSettings });
     await saveOptions(newSettings);
-    onUpdateNewSettings();
+    setSaveBtnEnabled(false);
     alert("Saved Settings!");
   };
 

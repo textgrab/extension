@@ -93,7 +93,7 @@ const OnboardingPage = () => {
           id="send-anonymous-check"
           checked={analyticsChecked}
           onChange={(e) => {
-            let newVal = (e.target as HTMLInputElement).checked;
+            const newVal = (e.target as HTMLInputElement).checked;
             chrome.storage.sync.set({ analyticsOptIn: newVal });
             setAnalyticsChecked(newVal);
           }}

@@ -28,17 +28,19 @@ function checkEventInRect(e: MouseEvent, rect: DOMRect) {
  * @param {HTMLElement} ghostElement : The ghost canvas used to get the base64 version of an image
  * @returns {Promise<Video | Image | Canvas>}
  */
-function getTarget(ghostElement: HTMLCanvasElement): Promise<Target<HTMLElement> | null> {
+function getTarget(
+  ghostElement: HTMLCanvasElement
+): Promise<Target<HTMLElement> | null> {
   return new Promise<Target<HTMLElement> | null>(function (resolve, reject) {
     // Unique ID for the className.
-    var MOUSE_VISITED_CLASSNAME = "crx_mouse_visited";
+    const MOUSE_VISITED_CLASSNAME = "crx_mouse_visited";
     window.focus();
 
     window.addEventListener("click", handleGlobalClick, {
       once: true,
     });
 
-    let elements = document.querySelectorAll("img,video,canvas");
+    const elements = document.querySelectorAll("img,video,canvas");
     elements.forEach((el) => {
       el.classList.add(MOUSE_VISITED_CLASSNAME);
       el.addEventListener("click", handleElementClick, {
@@ -86,7 +88,8 @@ function getTarget(ghostElement: HTMLCanvasElement): Promise<Target<HTMLElement>
       e.stopPropagation();
       cancelSelection();
       let res = null;
-      if (e.target) res = getTargetFromChildren(e.target as Element, ghostElement);
+      if (e.target)
+        res = getTargetFromChildren(e.target as Element, ghostElement);
       if (res == null) {
         trackEvent("ui_event", "cancel_selection", "window_click_target");
         reject("Please select an image or video element");
@@ -113,7 +116,7 @@ function getTarget(ghostElement: HTMLCanvasElement): Promise<Target<HTMLElement>
         const boundingRect = elements[i].getBoundingClientRect();
         // check if the click is within the bounding box of the element
         if (checkEventInRect(e, boundingRect)) {
-          let res = getTargetFromChildren(elements[i], ghostElement);
+          const res = getTargetFromChildren(elements[i], ghostElement);
           if (res != null) {
             trackEvent(
               "ui_event",
@@ -127,7 +130,7 @@ function getTarget(ghostElement: HTMLCanvasElement): Promise<Target<HTMLElement>
       }
 
       // sorted from top most element (highest z-index) to lowest (usually html)
-      let elementsAtPoint = document.elementsFromPoint(e.x, e.y);
+      const elementsAtPoint = document.elementsFromPoint(e.x, e.y);
 
       let res;
 
@@ -184,9 +187,8 @@ function getTargetFromParents(
   candidates: Element[],
   ghostElement: HTMLCanvasElement
 ): Target<HTMLElement> | null {
-
   if (!candidates || candidates.length == 0) return null;
-  let overflow: HTMLElement[] = [];
+  let overflow: Element[] = [];
   for (let i = 0; i < candidates.length; i++) {
     switch (candidates[i].nodeName) {
       case "VIDEO":
@@ -198,8 +200,7 @@ function getTargetFromParents(
       default:
         if (candidates[i].shadowRoot) {
           overflow = overflow.concat(
-            // @ts-ignore
-            Array.from(candidates[i].shadowRoot.children)
+            Array.from(candidates[i].shadowRoot?.children || [])
           );
         }
     }
@@ -214,7 +215,10 @@ function getTargetFromParents(
  * @param {Canvas} ghostElement used to create {Image} or {Video} instances
  * @returns {Video | Image | Canvas | null}
  */
-function getTargetFromChildren(root: Element, ghostElement: HTMLCanvasElement): Target<HTMLElement> | null {
+function getTargetFromChildren(
+  root: Element,
+  ghostElement: HTMLCanvasElement
+): Target<HTMLElement> | null {
   if (root == null) return null;
   switch (root.nodeName) {
     case "VIDEO":
@@ -224,7 +228,7 @@ function getTargetFromChildren(root: Element, ghostElement: HTMLCanvasElement): 
     case "CANVAS":
       return new Canvas(root as HTMLCanvasElement, ghostElement);
     default: {
-      var children = Array.from(root.children);
+      let children = Array.from(root.children);
       // On D2L, video is nested within shadowRoot for some reason
       // so we add those children as well
       if (root.shadowRoot) {
@@ -232,8 +236,8 @@ function getTargetFromChildren(root: Element, ghostElement: HTMLCanvasElement): 
       }
 
       // walk through the children
-      for (var i = 0; i < children.length; i++) {
-        let element = getTargetFromChildren(children[i], ghostElement);
+      for (let i = 0; i < children.length; i++) {
+        const element = getTargetFromChildren(children[i], ghostElement);
         if (element != null) return element;
       }
 
@@ -249,8 +253,11 @@ function getTargetFromChildren(root: Element, ghostElement: HTMLCanvasElement): 
  * @param {Renderer} renderer
  * @returns
  */
-async function getTextBlocksForTarget(target: Target<HTMLElement>, renderer: Renderer) {
-  let response, image: { data: string; width: number; height: number; };
+async function getTextBlocksForTarget(
+  target: Target<HTMLElement>,
+  renderer: Renderer
+) {
+  let response, image: { data: string; width: number; height: number };
 
   // get the image / video data from the target
   try {
@@ -292,7 +299,9 @@ async function getTextBlocksForTarget(target: Target<HTMLElement>, renderer: Ren
 
   const blocks: Block[] = [];
   let numRects = 0;
-  response.blocks.forEach((block: any) => {
+  type LineAPI = { bounding_box: DOMRect, text: string }
+  type BlockAPI = { lines: LineAPI[], bounding_box: DOMRect }
+  response.blocks.forEach((block: BlockAPI) => {
     const blockBoundingBox = block.bounding_box;
     const targetRect = target.getHTMLElement().getBoundingClientRect();
     const wScale = targetRect.width / image.width;
@@ -305,7 +314,7 @@ async function getTextBlocksForTarget(target: Target<HTMLElement>, renderer: Ren
       blockBoundingBox.height * hScale
     );
 
-    const lines = block.lines.map((line: any) => {
+    const lines = block.lines.map((line: LineAPI) => {
       // calculate position relative to the block
       const line_rect = new Rect(
         (line.bounding_box.x - blockBoundingBox.x) * wScale,
@@ -328,7 +337,11 @@ async function getTextBlocksForTarget(target: Target<HTMLElement>, renderer: Ren
  * Shows the menu on the target element.
  * TODO: Remove full_text and implement cleaner solution
  */
-function showMenu(target: Target<HTMLElement>, renderer: Renderer, full_text: string) {
+function showMenu(
+  target: Target<HTMLElement>,
+  renderer: Renderer,
+  full_text: string
+) {
   const startTime = performance.now();
   renderer.toggleMenu(
     true,
@@ -361,18 +374,18 @@ function showMenu(target: Target<HTMLElement>, renderer: Renderer, full_text: st
       trackEvent("buttons", "menu", "recapture");
       showMenu(target, renderer, full_text);
     }
-  )
+  );
 }
 
 function main() {
   // set up ghost canvas to put the image (we need this in order to get base64 string)
-  var ghost = document.createElement("canvas");
+  const ghost = document.createElement("canvas");
   ghost.id = "textgrab-ghost-1";
   ghost.style.position = "absolute";
   ghost.style.display = "none";
   document.documentElement.appendChild(ghost);
 
-  var ghostForMeasuringText = document.createElement("canvas");
+  const ghostForMeasuringText = document.createElement("canvas");
   ghostForMeasuringText.id = "textgrab-ghost-2";
   ghostForMeasuringText.style.position = "absolute";
   ghostForMeasuringText.style.display = "none";
@@ -380,7 +393,7 @@ function main() {
 
   (async function () {
     // load user settings
-    let settings = await loadUserPrefs();
+    const settings = await loadUserPrefs();
 
     // get the video / image target if it exists
     let target;
@@ -396,7 +409,7 @@ function main() {
     trackEvent("ui_event", "target_found", target.getHTMLElement().nodeName);
 
     // set up the renderer on the target element
-    let renderer = new Renderer(
+    const renderer = new Renderer(
       target.getHTMLElement(),
       ghostForMeasuringText,
       settings
@@ -427,10 +440,12 @@ function main() {
           document.documentElement.removeChild(ghost);
           document.documentElement.removeChild(ghostForMeasuringText);
           sendResponse({ success: true });
-        } catch (e) { }
+        } catch (e) {
+          sendResponse({ success: false });
+        }
       }
-    });
+    }
+    );
   })();
 }
 main();
-

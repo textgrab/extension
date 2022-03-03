@@ -6,9 +6,11 @@
   "scripts": {
     "watch": "webpack --config webpack/webpack.dev.js --watch",
     "build": "webpack --config webpack/webpack.prod.js",
+    "local": "webpack --config webpack/webpack.local.js --watch",
     "clean": "rimraf dist",
     "test": "npx jest",
-    "style": "prettier --write \"src/**/*.{ts,tsx}\""
+    "style": "prettier --write \"src/**/*.{ts,tsx}\"",
+    "lint": "eslint . --ext .ts"
   },
   "author": "",
   "dependencies": {
@@ -27,8 +29,12 @@
     "@types/react-color": "^3.0.6",
     "@types/react-dom": "^17.0.11",
     "@types/w3c-image-capture": "^1.0.5",
+    "@typescript-eslint/eslint-plugin": "^5.13.0",
+    "@typescript-eslint/parser": "^5.13.0",
     "copy-webpack-plugin": "^10.2.4",
     "css-loader": "^6.6.0",
+    "dotenv-webpack": "^7.1.0",
+    "eslint": "^8.10.0",
     "file-loader": "^6.2.0",
     "glob": "^7.1.6",
     "jest": "^27.5.1",
