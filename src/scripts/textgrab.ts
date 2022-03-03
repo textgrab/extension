@@ -299,8 +299,8 @@ async function getTextBlocksForTarget(
 
   const blocks: Block[] = [];
   let numRects = 0;
-  type LineAPI = { bounding_box: DOMRect, text: string }
-  type BlockAPI = { lines: LineAPI[], bounding_box: DOMRect }
+  type LineAPI = { bounding_box: DOMRect; text: string };
+  type BlockAPI = { lines: LineAPI[]; bounding_box: DOMRect };
   response.blocks.forEach((block: BlockAPI) => {
     const blockBoundingBox = block.bounding_box;
     const targetRect = target.getHTMLElement().getBoundingClientRect();
@@ -444,8 +444,7 @@ function main() {
           sendResponse({ success: false });
         }
       }
-    }
-    );
+    });
   })();
 }
 main();

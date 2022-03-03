@@ -114,7 +114,9 @@ async function handleCaptureButton() {
   return { message: "Capturing..." };
 }
 
-type ReqHandler = (req: any) => Promise<{ message: string } | { error: string } | void>;
+type ReqHandler = (
+  req: any
+) => Promise<{ message: string } | { error: string } | void>;
 
 const eventHandlers: { [key: string]: ReqHandler } = {
   captureBtn: handleCaptureButton,
@@ -177,9 +179,7 @@ chrome.runtime.onInstalled.addListener(async function (details) {
         event: "install",
         label: thisVersion,
       });
-      chrome.tabs.create(
-        { url: chrome.runtime.getURL("onboarding.html") }
-      );
+      chrome.tabs.create({ url: chrome.runtime.getURL("onboarding.html") });
       break;
     case "update":
       trackEvent({

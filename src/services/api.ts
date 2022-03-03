@@ -19,7 +19,10 @@ export async function callGetTextBlocksAPI(data: string) {
   });
   const content = await res.json();
 
-  if (Object.prototype.hasOwnProperty.call(content, "error") && content.error.message) {
+  if (
+    Object.prototype.hasOwnProperty.call(content, "error") &&
+    content.error.message
+  ) {
     throw new APIError(content.error.message);
   }
   const duration = performance.now() - startTime;

@@ -97,8 +97,8 @@ export class Renderer {
           lineElement == null
             ? line.rect.y
             : line.rect.y -
-            block.lines[i - 1].rect.y -
-            block.lines[i - 1].rect.height;
+              block.lines[i - 1].rect.y -
+              block.lines[i - 1].rect.height;
 
         lineElement = this.createLineInBlock(line, yOffset);
         if (!lineElement) continue;
@@ -202,7 +202,15 @@ export class Renderer {
    * Shows or hides the clear button
    * @param {Boolean} show whether to show or hide the clear button
    */
-  toggleMenu(show: boolean, onCopyAll = () => { /* no-op */ }, onRecapture = () => { /* no-op */ }) {
+  toggleMenu(
+    show: boolean,
+    onCopyAll = () => {
+      /* no-op */
+    },
+    onRecapture = () => {
+      /* no-op */
+    }
+  ) {
     if (this.menu != null) {
       document.documentElement.removeChild(this.menu);
       this.menu = null;

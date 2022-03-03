@@ -1,5 +1,5 @@
 export abstract class Target<T extends HTMLElement> {
-  constructor(protected element: T, private ghostCanvas: HTMLCanvasElement) { }
+  constructor(protected element: T, private ghostCanvas: HTMLCanvasElement) {}
 
   protected abstract getImageBitmap(): Promise<ImageBitmap>;
 
