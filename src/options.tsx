@@ -88,12 +88,15 @@ const OptionsPage = () => {
         <h1 className="logo popup-title">TextGrab Settings</h1>
       </div>
       <h3 id="general-header">General</h3>
-      <div className="option" id="colour-option">
+      <div
+        className="option"
+        id="colour-option"
+        onClick={() => setShowColorPicker(!showColorPicker)}
+      >
         <span
           className="dot"
           id="colour-preview"
           style={{ background: newSettings.highlightColor }}
-          onClick={() => setShowColorPicker(!showColorPicker)}
         ></span>
         {showColorPicker ? (
           <div
@@ -102,17 +105,8 @@ const OptionsPage = () => {
               zIndex: 2,
               top: "250px",
             }}
+            onClick={(e) => e.stopPropagation()}
           >
-            <div
-              style={{
-                position: "fixed",
-                top: "0px",
-                right: "0px",
-                bottom: "0px",
-                left: "0px",
-              }}
-              onClick={handleColorClose}
-            />
             <ChromePicker
               color={newSettings.highlightColor}
               onChange={handleColourChange}
