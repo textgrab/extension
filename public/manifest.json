@@ -1,0 +1,39 @@
+{
+  "name": "TextGrab",
+  "version": "0.1.0",
+  "manifest_version": 3,
+  "description": "Copy text from videos, images and live meetings! Grabbing text has never been easier!",
+  "icons": {
+    "16": "icons/logo16.png",
+    "32": "icons/logo32.png",
+    "48": "icons/logo48.png",
+    "128": "icons/logo128.png"
+  },
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": true
+  },
+  "background": {
+    "service_worker": "js/background.js"
+  },
+  "action": {
+    "default_title": "TextGrab",
+    "default_icon": "icons/logo48.png",
+    "default_popup": "popup.html"
+  },
+  "commands": {
+    "textgrab": {
+      "suggested_key": {
+        "default": "Alt+C"
+      },
+      "description": "Use this shortcut to enable selection of text from videos, images and live meetings. Click to confirm selection."
+    },
+    "textgrab_fallback": {
+      "suggested_key": {
+        "default": "Alt+T"
+      },
+      "description": "This shortcut enables the precise selection of text from videos, images and live meetings."
+    }
+  },
+  "permissions": ["activeTab", "scripting", "storage"]
+}

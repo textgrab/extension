@@ -1,0 +1,71 @@
+@import url("./main.scss");
+
+.onboarding-card {
+  opacity: 1;
+  transition: all 0.3s ease-in-out;
+  animation-duration: 0.5s;
+  animation-name: scaleoutin;
+  background-color: rgb(61, 61, 61);
+  border-radius: 25px;
+  color: white;
+}
+
+.card-text {
+  text-align: justify;
+  text-justify: inter-word;
+  color: rgb(196, 195, 195);
+}
+
+.btn-primary {
+  background-color: #42a6ee;
+  border-color: rgb(61, 61, 61);
+  color: white;
+  border: none;
+}
+.btn-primary:hover {
+  background-color: #2492e0;
+}
+.btn-primary:focus {
+  background-color: #2492e0;
+}
+
+#get-started-btn {
+  outline: none;
+  margin-bottom: 25px;
+}
+
+#onboarding-card-1 {
+  animation-delay: 0.5s;
+}
+
+#onboarding-card-2 {
+  animation-delay: 1s;
+}
+
+#onboarding-card-3 {
+  animation-delay: 1.5s;
+}
+
+#onboarding-title {
+  background-color: rgb(61, 61, 61);
+  padding: 1rem;
+  border-radius: 25px 25px 0px 0px;
+}
+
+#onboarding-title-2 {
+}
+
+.send-analytics-pref {
+  text-align: center;
+}
+
+@keyframes scaleoutin {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(0.95);
+  }
+}
