@@ -29,8 +29,16 @@ jobs:
            npm ci
            npm run build
            npm test
-    - uses: actions/upload-artifact@v2
+    - run: cd dist && zip -r ../extension.zip * && cd .. 
+    - name: Upload Artifacts
+      if: ${{ github.event_name == 'pull_request' }}
+      uses: gavv/pull-request-artifacts@v1.0.0
       with:
-        name: extension
-        path: dist
+        commit: ${{ github.event.pull_request.head.sha }}
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
+        artifacts-token: ${{ secrets.ARTIFACT_REPO_SECRET }}
+        artifacts-branch: ${{ github.event.pull_request.number }}
+        artifacts-repo: textgrab/artifacts
+        artifacts: |
+          extension.zip
     
