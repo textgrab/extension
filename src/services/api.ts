@@ -5,7 +5,11 @@ import { trackEvent } from "./analytics";
  * @param {str} data Image data to send to the API
  * @returns JSON object of response of API /process
  */
-export async function callGetTextBlocksAPI(data: string) {
+export async function callGetTextBlocksAPI(
+  data: string,
+  preserveIndentation: boolean,
+  isolateBlocks: boolean
+) {
   const startTime = performance.now();
   // to remove the 22 characters before the image data
   data = data.substring(22);
@@ -15,7 +19,11 @@ export async function callGetTextBlocksAPI(data: string) {
       Accept: "application/json",
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ imageData: data }),
+    body: JSON.stringify({
+      imageData: data,
+      preserveIndentation: preserveIndentation,
+      isolateBlocks: isolateBlocks
+    }),
   });
   const content = await res.json();
 
