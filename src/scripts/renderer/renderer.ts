@@ -97,8 +97,8 @@ export class Renderer {
           lineElement == null
             ? line.rect.y
             : line.rect.y -
-              block.lines[i - 1].rect.y -
-              block.lines[i - 1].rect.height;
+            block.lines[i - 1].rect.y -
+            block.lines[i - 1].rect.height;
 
         lineElement = this.createLineInBlock(line, yOffset);
         if (!lineElement) continue;
@@ -137,7 +137,7 @@ export class Renderer {
     const text = document.createElement("div");
 
     text.style.position = "relative";
-    text.innerText = line.text;
+    text.textContent = line.text;
     text.style.width = rect.width + "px";
     text.style.height = rect.height + "px";
 

@@ -280,7 +280,7 @@ async function getTextBlocksForTarget(
 
   // Hit the API with the image data to get rects
   try {
-    response = await callGetTextBlocksAPI(image.data);
+    response = await callGetTextBlocksAPI(image.data, false, true);
   } catch (e) {
     console.error(e);
     renderer.clear();

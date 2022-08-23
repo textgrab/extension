@@ -201,7 +201,7 @@ function main() {
     trackEvent("ui_event", "crop", "success");
     let apiResponse;
     try {
-      apiResponse = await callGetTextBlocksAPI(croppedImage);
+      apiResponse = await callGetTextBlocksAPI(croppedImage, true, false);
     } catch (e) {
       console.error(e);
       if (e instanceof APIError) {
