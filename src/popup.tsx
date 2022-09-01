@@ -7,6 +7,9 @@ import OptionsIcon from "./assets/img/options.svg";
 import HelpIcon from "./assets/img/help-btn.svg";
 import CoffeeIcon from "./assets/img/coffee-btn.svg";
 import FallbackIcon from "./assets/img/fallback-btn.svg";
+import WritingAd from "./assets/img/writing.png";
+
+import { FIVER_LINK } from "./utils/constants";
 
 import "./assets/scss/main.scss";
 
@@ -106,6 +109,20 @@ const Popup = () => {
         <p id="description-btm" className="description">
           {btmDescription}
         </p>
+      </div>
+      <div className="ad-divider"></div>
+      <img src={WritingAd} id="writing-ad" className="ad"></img>
+
+      <div
+        className="ad-clickable"
+        onClick={() => {
+          chrome.tabs.create({ url: FIVER_LINK });
+        }}
+      >
+        {/* Clickable region for ad since image overlaps */}
+      </div>
+      <div className="description" id="ad-description">
+        Ad
       </div>
     </div>
   );

@@ -134,7 +134,6 @@ const OptionsPage = () => {
           onChange={({
             target: { checked },
           }: React.ChangeEvent<HTMLInputElement>) => {
-            console.log("here", checked);
             setNewSettings({ ...newSettings, analyticsOptIn: checked });
             chrome.storage.sync.set({ analyticsOptIn: checked });
           }}
