@@ -26,13 +26,13 @@
       "suggested_key": {
         "default": "Alt+C"
       },
-      "description": "Use this shortcut to enable selection of text from videos, images and live meetings. Click to confirm selection."
+      "description": "Activates full element selection of text from videos, images and live meetings. Click to confirm selection."
     },
     "textgrab_fallback": {
       "suggested_key": {
         "default": "Alt+T"
       },
-      "description": "This shortcut enables the precise selection of text from videos, images and live meetings."
+      "description": "Activate snip tool to select region of screen"
     }
   },
   "permissions": ["activeTab", "scripting", "storage"]

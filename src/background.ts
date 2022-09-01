@@ -39,10 +39,7 @@ const initialize = getClientInfo().then((data: Options) => {
 chrome.storage.onChanged.addListener((changes, area) => {
   if (area === "sync" && changes.analyticsOptIn) {
     const collectAnalytics = Boolean(changes.analyticsOptIn.newValue);
-    console.log("Switched analytics to", collectAnalytics);
-    if (analytics) {
-      analytics.setEnabled(collectAnalytics);
-    }
+    analytics?.setEnabled(collectAnalytics);
   }
 });
 
