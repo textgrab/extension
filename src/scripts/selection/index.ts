@@ -43,7 +43,7 @@ export function getSelection(): Promise<Selection | null> {
             divElement.style.zIndex = "2147483647";
             divElement.style.userSelect = "none";
             divElement.style.pointerEvents = "none";
-            divElement.style.backgroundColor = "rgba(112, 112, 112, 0.3)";
+            divElement.style.backgroundColor = "rgba(227, 227, 227, 0.3)";
             overlay?.appendChild(divElement);
         };
         const onMouseMove = (e: MouseEvent) => {
