@@ -96,6 +96,10 @@ async function handleFallbackCapture() {
   injectScript("js/fallback.js");
 }
 
+async function handleLatexCapture() {
+  injectScript("js/latex.js");
+}
+
 async function handleTabScreenshot() {
   const screenshot = await chrome.tabs.captureVisibleTab({ format: "png" });
   return { message: "Success", screenshot: screenshot };
@@ -120,6 +124,7 @@ const eventHandlers: { [key: string]: ReqHandler } = {
   event: trackEvent,
   startFallback: handleFallbackCapture,
   getTabScreenshot: handleTabScreenshot,
+  startLatex: handleLatexCapture
 };
 
 /* Event Listeners */

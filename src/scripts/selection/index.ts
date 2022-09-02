@@ -1,0 +1,153 @@
+import { Selection } from "../models";
+import { trackEvent } from "../../services/analytics";
+export function getSelection(): Promise<Selection | null> {
+    return new Promise<Selection | null>((resolve) => {
+        let [startX, startY]: (number | null)[] = [null, null];
+        let overlay: HTMLElement | null = null;
+        let divElement: HTMLElement | null = null;
+        const oldOverflowValue = document.documentElement.style.overflow;
+        const oldUserSelectValue = document.documentElement.style.userSelect;
+        const oldPointerEventsValue = document.documentElement.style.pointerEvents;
+        const oldCursorValue = document.documentElement.style.cursor;
+        document.body.style.overflow = "hidden";
+        document.documentElement.style.userSelect = "none";
+        document.documentElement.style.pointerEvents = "none";
+        document.documentElement.style.cursor = "crosshair";
+
+        overlay = document.createElement("div");
+        overlay.style.position = "absolute";
+        overlay.style.left = startX + "px";
+        overlay.style.width = "100vw";
+        overlay.style.height = "100vh";
+        overlay.style.left =
+            (window.pageXOffset || document.documentElement.scrollLeft) + "px";
+        overlay.style.top =
+            (window.pageYOffset || document.documentElement.scrollTop) + "px";
+        overlay.style.zIndex = "2147483646";
+        overlay.style.userSelect = "none";
+        // overlay.style.pointerEvents = "none";
+        overlay.style.backgroundColor = "rgba(0, 0, 0, 0.3)";
+        overlay.style.cursor = "crosshair";
+        document.documentElement.appendChild(overlay);
+
+        const onMouseDown = (e: MouseEvent) => {
+            startX = e.x;
+            startY = e.y;
+
+            divElement = document.createElement("div");
+            divElement.id = "selector";
+            divElement.style.left = startX + "px";
+            divElement.style.top = startY + "px";
+            divElement.style.border = "1px solid white";
+            divElement.style.position = "absolute";
+            divElement.style.zIndex = "2147483647";
+            divElement.style.userSelect = "none";
+            divElement.style.pointerEvents = "none";
+            divElement.style.backgroundColor = "rgba(112, 112, 112, 0.3)";
+            overlay?.appendChild(divElement);
+        };
+        const onMouseMove = (e: MouseEvent) => {
+            if (divElement == null || startX == null || startY == null) {
+                return;
+            }
+            const newX = e.x;
+            const newY = e.y;
+
+            if (newX < startX) {
+                divElement.style.left = newX + "px";
+            } else {
+                divElement.style.left = startX + "px";
+            }
+
+            if (newY < startY) {
+                divElement.style.top = newY + "px";
+            } else {
+                divElement.style.top = startY + "px";
+            }
+            divElement.style.width = Math.abs(newX - startX) + "px";
+            divElement.style.height = Math.abs(newY - startY) + "px";
+        };
+        const onMouseUp = () => {
+            if (divElement == null) {
+                return;
+            }
+            const result = {
+                x: divElement.offsetLeft,
+                y: divElement.offsetTop,
+                width: divElement.offsetWidth,
+                height: divElement.offsetHeight,
+                parentWidth: document.documentElement.clientWidth,
+                parentHeight: document.documentElement.clientHeight,
+            };
+            cancelSelection();
+            resolve(result);
+        };
+
+        const cancelSelection = () => {
+            if (overlay == null) return;
+            document.removeEventListener("mousedown", onMouseDown);
+            document.removeEventListener("mousemove", onMouseMove);
+            document.removeEventListener("mouseup", onMouseUp);
+            document.removeEventListener("keypress", handleKeyPress);
+
+            document.documentElement.removeChild(overlay);
+            document.body.style.overflow = oldOverflowValue;
+            document.documentElement.style.userSelect = oldUserSelectValue;
+            document.documentElement.style.pointerEvents = oldPointerEventsValue;
+            document.documentElement.style.cursor = oldCursorValue;
+            startX = null;
+            startY = null;
+            overlay = null;
+            divElement = null;
+        };
+
+        const handleKeyPress = (e: KeyboardEvent) => {
+            if (e.key == "Escape" || e.key == "Esc" || e.keyCode == 27) {
+                trackEvent("ui_event", "cancel_selection", "ESC");
+                cancelSelection();
+                resolve(null);
+            }
+        };
+
+        document.addEventListener("mousedown", onMouseDown);
+        document.addEventListener("mousemove", onMouseMove);
+        document.addEventListener("mouseup", onMouseUp);
+        document.addEventListener("keydown", handleKeyPress);
+    });
+}
+
+export function crop(screenshotURL: string, selection: Selection): Promise<string> {
+    return new Promise<string>((resolve, reject) => {
+        const canvas = document.createElement("canvas");
+        // scaled down
+        canvas.width = selection.width;
+        canvas.height = selection.height;
+
+        const ctx = canvas.getContext("2d");
+        if (ctx == null) {
+            reject("Could not get canvas context");
+            return;
+        }
+        const image = new Image();
+        image.onload = async () => {
+            const scaleX = image.width / selection.parentWidth;
+            const scaleY = image.height / selection.parentHeight;
+            ctx?.drawImage(
+                image,
+                selection.x * scaleX,
+                selection.y * scaleY,
+                selection.width * scaleX,
+                selection.height * scaleY,
+                0,
+                0,
+                selection.width,
+                selection.height
+            );
+            resolve(canvas.toDataURL());
+        };
+        image.onerror = (e) => {
+            reject(e);
+        };
+        image.src = screenshotURL;
+    });
+}
