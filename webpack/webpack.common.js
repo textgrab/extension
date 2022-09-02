@@ -11,6 +11,7 @@ module.exports = {
     background: path.join(srcDir, "background.ts"),
     textgrab: path.join(srcDir, "scripts/textgrab.ts"),
     fallback: path.join(srcDir, "scripts/fallback.ts"),
+    latex: path.join(srcDir, "scripts/latex.ts"),
   },
   output: {
     path: path.join(__dirname, "../dist/js"),
@@ -23,7 +24,8 @@ module.exports = {
         return (
           chunk.name !== "background" &&
           chunk.name !== "textgrab" &&
-          chunk.name !== "fallback"
+          chunk.name !== "fallback" &&
+          chunk.name !== "latex"
         );
       },
     },

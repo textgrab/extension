@@ -7,6 +7,7 @@ import OptionsIcon from "./assets/img/options.svg";
 import HelpIcon from "./assets/img/help-btn.svg";
 import CoffeeIcon from "./assets/img/coffee-btn.svg";
 import FallbackIcon from "./assets/img/fallback-btn.svg";
+import LatexIcon from "./assets/img/latex-btn.svg";
 import WritingAd from "./assets/img/writing.png";
 
 import { FIVER_LINK } from "./utils/constants";
@@ -37,6 +38,18 @@ const Popup = () => {
 
     chrome.runtime.sendMessage({
       type: "startFallback",
+    });
+
+    setTimeout(() => {
+      window.close();
+    }, 100);
+  };
+
+  const onLatexClick = () => {
+    trackEvent("buttons", "popup", "latex_capture");
+
+    chrome.runtime.sendMessage({
+      type: "startLatex",
     });
 
     setTimeout(() => {
@@ -100,6 +113,13 @@ const Popup = () => {
           className="popup-mini-btn"
           title="Snip Tool Selection"
           onClick={onFallbackClick}
+        ></img>
+        <img
+          src={LatexIcon}
+          id="latex-btn"
+          className="popup-mini-btn"
+          title="LaTex Selection (Beta)"
+          onClick={onLatexClick}
         ></img>
       </div>
       <div className="popup-content">
