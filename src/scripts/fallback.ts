@@ -19,7 +19,6 @@ function getSelection(): Promise<Selection | null> {
     let divElement: HTMLElement | null = null;
     const oldOverflowValue = document.documentElement.style.overflow;
     const oldUserSelectValue = document.documentElement.style.userSelect;
-    const oldPointerEventsValue = document.documentElement.style.pointerEvents;
     const oldCursorValue = document.documentElement.style.cursor;
 
     document.documentElement.style.overflow = "hidden";
@@ -38,7 +37,7 @@ function getSelection(): Promise<Selection | null> {
       (window.pageYOffset || document.documentElement.scrollTop) + "px";
     overlay.style.zIndex = "2147483646";
     overlay.style.userSelect = "none";
-    overlay.style.pointerEvents = "none";
+    // overlay.style.pointerEvents = "none";
     overlay.style.backgroundColor = "rgba(0, 0, 0, 0.3)";
     overlay.style.cursor = "crosshair";
     document.documentElement.appendChild(overlay);
@@ -106,7 +105,6 @@ function getSelection(): Promise<Selection | null> {
       document.documentElement.removeChild(overlay);
       document.documentElement.style.overflow = oldOverflowValue;
       document.documentElement.style.userSelect = oldUserSelectValue;
-      document.documentElement.style.pointerEvents = oldPointerEventsValue;
       document.documentElement.style.cursor = oldCursorValue;
       startX = null;
       startY = null;
