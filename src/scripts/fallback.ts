@@ -20,6 +20,7 @@ function getSelection(): Promise<Selection | null> {
     const oldOverflowValue = document.documentElement.style.overflow;
     const oldUserSelectValue = document.documentElement.style.userSelect;
     const oldCursorValue = document.documentElement.style.cursor;
+    const oldPointerEventsValue = document.documentElement.style.pointerEvents;
 
     document.documentElement.style.overflow = "hidden";
     document.documentElement.style.userSelect = "none";
@@ -106,6 +107,7 @@ function getSelection(): Promise<Selection | null> {
       document.documentElement.style.overflow = oldOverflowValue;
       document.documentElement.style.userSelect = oldUserSelectValue;
       document.documentElement.style.cursor = oldCursorValue;
+      document.documentElement.style.pointerEvents = oldPointerEventsValue;
       startX = null;
       startY = null;
       overlay = null;
