@@ -1,5 +1,7 @@
 # TextGrab Chrome Extension
 
+TextGrab is a Chrome Extension that leverages machine learning (OCR) to allow text to be copyable from any online media!
+
 ### Running the Chrome Extension locally
 
 1. `git clone git@github.com:textgrab/extension.git`
