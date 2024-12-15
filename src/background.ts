@@ -56,6 +56,7 @@ async function trackEvent({
   value?: string;
   data?: any;
 }) {
+  console.log("Test");
   try {
     await initialize;
   } catch (e) {
